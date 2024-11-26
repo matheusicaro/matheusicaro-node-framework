@@ -23,6 +23,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
+    "pre-publish": "npm run build & npm publish",
     "lint": "eslint . ",
     "precommit": "lint-staged",
     "prepare": "sh ./scripts/prepare.sh",
