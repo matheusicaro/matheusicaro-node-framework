@@ -1,4 +1,3 @@
-const start = () => "start";
+const show = (message: string) => console.log(`===> ${message}`);
 
-console.log(start());
-
+export { show };
