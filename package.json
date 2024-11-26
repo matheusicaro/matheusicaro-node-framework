@@ -1,0 +1,23 @@
+{
+  "name": "mi-node-framework",
+  "version": "1.0.0",
+  "description": "Framework as pack of my custom basic configuration setups for a quick build of services and APIs for Node.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo Nothin yet"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matheusicaro/mi-node-framework.git"
+  },
+  "keywords": [
+    "Node"
+  ],
+  "author": "@matheusicaro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/matheusicaro/mi-node-framework/issues"
+  },
+  "homepage": "https://github.com/matheusicaro/mi-node-framework#readme",
+  "devDependencies": {}
+}
