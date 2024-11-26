@@ -21,17 +21,17 @@ export interface ServerNextFunction extends NextFunction {}
  */
 abstract class RestControllerBase {
   protected logger: LoggerPort;
-  protected badRequestStatusCode;
-  protected badRequestPayload;
+  protected failedRequestStatusCode;
+  protected failedRequestPayload;
 
   constructor(
-    customBadRequestStatusCode = 502,
-    customBadRequestPayload = { message: 'error on processing the request' }
+    customFailedRequestStatusCode = 502,
+    customFailedRequestPayload = { message: 'error on processing the request' }
   ) {
     this.logger = container.resolve(DependencyInjectionTokens.Logger);
 
-    this.badRequestStatusCode = customBadRequestStatusCode;
-    this.badRequestPayload = customBadRequestPayload;
+    this.failedRequestStatusCode = customFailedRequestStatusCode;
+    this.failedRequestPayload = customFailedRequestPayload;
   }
 
   /**
@@ -46,7 +46,7 @@ abstract class RestControllerBase {
    *
    * @returns
    */
-  protected responseFailRequestWithErrorHandle(input: {
+  protected handleErrorThenRespondFailedOnRequest(input: {
     error: unknown;
     responseData?: Record<string, unknown>;
     response: ServerResponse;
@@ -54,8 +54,8 @@ abstract class RestControllerBase {
     this.logError(input.error);
 
     return input.response
-      .status(this.badRequestStatusCode)
-      .json({ ...this.badRequestPayload, ...(input.responseData && { ...input.responseData }) });
+      .status(this.failedRequestStatusCode)
+      .json({ ...this.failedRequestPayload, ...(input.responseData && { ...input.responseData }) });
   }
 
   private logError(error: unknown): void {

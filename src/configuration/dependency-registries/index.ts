@@ -1,3 +1,3 @@
-export * from './config-registries';
 export * from './dependency-registry';
 export * from './tokens';
+export * from './decorators';

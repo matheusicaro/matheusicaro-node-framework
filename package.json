@@ -1,5 +1,5 @@
 {
-  "name": "mi-node-framework",
+  "name": "matheusicaro-node-framework",
   "version": "1.0.0",
   "description": "Framework as pack of my custom basic configuration setups for a quick build of services and APIs for Node.",
   "author": "@matheusicaro",
@@ -23,6 +23,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
+    "pre-publish": "npm run build & npm publish",
     "lint": "eslint . ",
     "precommit": "lint-staged",
     "prepare": "sh ./scripts/prepare.sh",
