@@ -2,7 +2,7 @@
  * Tokens for the available registered dependencies
  */
 enum DependencyInjectionTokens {
-  FirstToken = 'FirstToken'
+  Logger = 'Logger'
 }
 
 export { DependencyInjectionTokens };
