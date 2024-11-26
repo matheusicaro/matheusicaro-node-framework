@@ -9,6 +9,11 @@ if (!isFileLogCreated(DIRECTORY_NAME_TO_LOG)) {
   buildFile(DIRECTORY_NAME_TO_LOG);
 }
 
+/**
+ *
+ * @param log
+ * @returns "2024-11-25 16:45:31 [ ERROR ]==> uncaughtException: some message"
+ */
 const logFormat = (log: TransformableInfo) => `${log.timestamp} [ ${log.level.toUpperCase()} ]==> ${log.message}`;
 
 const createLoggerSetup = (): Logger => {
