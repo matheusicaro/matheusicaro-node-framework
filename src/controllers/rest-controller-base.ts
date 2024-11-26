@@ -46,7 +46,7 @@ abstract class RestControllerBase {
    *
    * @returns
    */
-  protected responseFailRequestWithErrorHandle<T>(input: {
+  protected responseFailRequestWithErrorHandle(input: {
     error: unknown;
     responseData?: Record<string, unknown>;
     response: ServerResponse;

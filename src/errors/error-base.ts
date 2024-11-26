@@ -54,6 +54,7 @@ abstract class ErrorBase extends Error {
     if (trace?.logs) {
       this.logLevel = trace.logs.level;
       this.logData = trace.logs.data;
+      // asf dsafds
 
       trace.logs.instance.exception(this);
     }
