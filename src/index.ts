@@ -1,3 +1,2 @@
-const show = (message: string) => console.log(`===> ${message}`);
-
-export { show };
+export * from './configuration';
+export * from './errors';

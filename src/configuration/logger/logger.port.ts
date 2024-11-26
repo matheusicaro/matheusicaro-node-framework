@@ -1,4 +1,4 @@
-import { ErrorBase } from '../errors/error-base';
+import { ErrorBase } from '../../';
 
 export type LogData = Record<string, unknown>;
 

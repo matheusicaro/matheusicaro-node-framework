@@ -1,4 +1,4 @@
-import { LogData, LoggerPort, LogLevel } from '../logger/logger.port';
+import { LogData, LoggerPort, LogLevel } from '../';
 
 export interface ErrorTrace {
   logData: LogData & {

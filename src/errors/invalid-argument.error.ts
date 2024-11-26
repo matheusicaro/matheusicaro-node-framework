@@ -1,8 +1,8 @@
 import { container } from 'tsyringe';
 
 import { alignArgs, ErrorBase, ErrorCode, ErrorTrace } from './error-base';
-import { LoggerPort, LogLevel } from '../logger';
-import { DependencyInjectionTokens } from '../dependency-registries';
+import { LoggerPort, LogLevel } from '../index';
+import { DependencyInjectionTokens } from '../configuration/dependency-registries';
 
 export type InvalidArgumentErrorTrace = ErrorTrace & {
   message: string;

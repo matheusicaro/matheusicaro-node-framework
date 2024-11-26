@@ -1,4 +1,4 @@
-import { ErrorBase } from '../errors';
+import { ErrorBase } from '../../';
 import { LogData, LoggerPort, LogLevel } from './logger.port';
 import { createLoggerSetup } from './setup/create-logger.setup';
 
