@@ -7,7 +7,6 @@ import pluginJest from 'eslint-plugin-jest';
 export default [
   {
     ignores: [
-      // for global ignores a directory name works:
       'dist'
     ]
   },
