@@ -8,6 +8,7 @@ type DependencyRegistryArgs = (this: DependencyRegistry) => void;
 /**
  * This class is the default Dependency Registry from @mi-node-framework, which uses tsyringe for now.
  * ref: https://github.com/matheusicaro/mi-node-framework#mi-node-framework
+ * @matheusicaro
  */
 class DependencyRegistry {
   public container = container;
