@@ -9,7 +9,7 @@ describe('RestControllerBase', () => {
     test('should set custom fields from the args correctly when they are informed', () => {});
   });
 
-  describe('responseFailRequestWithErrorHandle', () => {
+  describe('handleErrorThenRespondFailedOnRequest', () => {
     test('should log errors correctly', () => {});
 
     test('should response with the correct status code and payload', () => {});
