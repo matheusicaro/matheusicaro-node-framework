@@ -2,35 +2,58 @@
   "name": "mi-node-framework",
   "version": "1.0.0",
   "description": "Framework as pack of my custom basic configuration setups for a quick build of services and APIs for Node.",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "test": "jest"
-  },
+  "author": "@matheusicaro",
+  "license": "MIT",
+  "homepage": "https://github.com/matheusicaro/mi-node-framework#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matheusicaro/mi-node-framework.git"
   },
-  "keywords": [
-    "Node"
-  ],
-  "author": "@matheusicaro",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/matheusicaro/mi-node-framework/issues"
   },
-  "homepage": "https://github.com/matheusicaro/mi-node-framework#readme",
+  "keywords": [
+    "Node"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest",
+    "precommit": "lint-staged",
+    "prepare": "sh ./scripts/prepare.sh"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run prettier-format && npm run lint && npm run test"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint"
+    ]
+  },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
     "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.9.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.16.0"
   }
 }
