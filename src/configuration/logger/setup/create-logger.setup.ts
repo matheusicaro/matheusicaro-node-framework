@@ -26,6 +26,11 @@ const createLoggerSetup = (): Logger => {
       new transports.Console()
     ],
 
+    /**
+     * This handle is very useful when errors were not caught and in some compute cloud providers
+     * like AWS EC2 will restart the app in this cases. With this handle, the log will be registered before
+     * stop/break the application
+     */
     exceptionHandlers: [new transports.File({ filename: exceptionsLogPath }), new transports.Console()]
   });
 
