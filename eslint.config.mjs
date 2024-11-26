@@ -5,6 +5,12 @@ import pluginJest from 'eslint-plugin-jest';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
+  {
+    ignores: [
+      // for global ignores a directory name works:
+      'dist'
+    ]
+  },
   { files: ['**/*.{js,mjs,cjs,ts}', 'test/**'], ...pluginJest.configs['flat/recommended'] },
   {
     languageOptions: {
