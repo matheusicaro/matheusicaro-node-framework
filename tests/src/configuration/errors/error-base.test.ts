@@ -1,5 +1,5 @@
 /**
- * TODO: implement tests for LoggerAdapter
+ * TODO: implement tests for ErrorBase
  *     - issue: https://github.com/matheusicaro/mi-node-framework/issues/3
  */
 describe('ErrorBase', () => {

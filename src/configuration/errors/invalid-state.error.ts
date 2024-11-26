@@ -6,17 +6,24 @@ import { DependencyInjectionTokens } from '../dependency-registries';
 
 export type InvalidStateErrorTrace = ErrorTrace;
 /**
- * When the system is in an invalid state and cannot perform an action. This error will surface to the user
- * as a unknown error as there is nothing the user can do at this point to fix the request.
+ * Error when an invalid state was found and not able to be handle with.
  *
- * If the user needs to know the details of what went wrong consider implement a InvalidRequestError
+ * This error will:
+ *  - surface to the user as a default error message (if not informed) once there is nothing the user can do at this point to fix the request
+ *  - Log automatically the error & "trace" field when it is present in the args
+ *    - new InvalidStateError(message) => do not error & message
+ *    - new InvalidStateError(message, trace) => do log message and trace fields
+ *
+ * Do not use this error when client is responsible for a invalid request, use InvalidRequestError instead.
+ *
+ * @matheusicaro
  */
 class InvalidStateError extends ErrorBase {
   constructor(message: string);
   constructor(trace: InvalidStateErrorTrace);
   constructor(message: string, trace?: InvalidStateErrorTrace);
   constructor(messageOrTrace: string | InvalidStateErrorTrace, _trace?: InvalidStateErrorTrace) {
-    const { message = 'Something went wrong', trace } = alignArgs(messageOrTrace, _trace);
+    const { message = 'Invalid state found during service request', trace } = alignArgs(messageOrTrace, _trace);
 
     super(ErrorCode.INVALID_STATE, InvalidStateError.name, message, {
       originalError: trace?.logData.error,

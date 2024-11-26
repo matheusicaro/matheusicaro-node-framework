@@ -22,6 +22,16 @@ export enum ErrorCode {
   NOT_FOUND = 'NOT_FOUND'
 }
 
+/**
+ * ErrorBase to implement custom errors with logging the trace args when it is informed.
+ * Implementations:
+ *   - InvalidArgumentError
+ *   - InvalidRequestError
+ *   - InvalidStateError
+ *   - NotFoundError
+ *
+ * * @matheusicaro
+ */
 abstract class ErrorBase extends Error {
   readonly code: ErrorCode;
   readonly isErrorBase: boolean;

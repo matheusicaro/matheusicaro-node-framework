@@ -6,10 +6,15 @@ import { DependencyInjectionTokens } from '../dependency-registries';
 
 export type NotFoundErrorTrace = ErrorTrace;
 /**
- * When the system is in an invalid state and cannot perform an action. This error will surface to the user
- * as a unknown error as there is nothing the user can do at this point to fix the request.
+ * Error when a resource is not found.
  *
- * If the user needs to know the details of what went wrong consider implement a InvalidRequestError
+ * This error will:
+ *  - surface to the user as a unknown error once there is nothing the user can do at this point to fix the request.
+ *  - Log automatically the error & "trace" field when it is present in the args
+ *    - new InvalidStateError(message) => do not error & message
+ *    - new InvalidStateError(message, trace) => do log message and trace fields
+ *
+ * @matheusicaro
  */
 class NotFoundError extends ErrorBase {
   constructor(message: string);

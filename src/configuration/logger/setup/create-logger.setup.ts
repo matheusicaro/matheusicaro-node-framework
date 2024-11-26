@@ -9,11 +9,6 @@ if (!isFileLogCreated(DIRECTORY_NAME_TO_LOG)) {
   buildFile(DIRECTORY_NAME_TO_LOG);
 }
 
-/**
- *
- * @param log
- * @returns "2024-11-25 16:45:31 [ ERROR ]==> uncaughtException: some message"
- */
 const logFormat = (log: TransformableInfo) => `${log.timestamp} [ ${log.level.toUpperCase()} ]==> ${log.message}`;
 
 const createLoggerSetup = (): Logger => {
@@ -31,11 +26,6 @@ const createLoggerSetup = (): Logger => {
       new transports.Console()
     ],
 
-    /**
-     * This handle is very useful when errors were not caught and in some compute cloud providers
-     * like AWS EC2 will restart the app in this cases. With this handle, the log will be registered before
-     * stop/break the application
-     */
     exceptionHandlers: [new transports.File({ filename: exceptionsLogPath }), new transports.Console()]
   });
 

@@ -1,3 +1,5 @@
+import { ErrorBase } from '../errors/error-base';
+
 export type LogData = Record<string, unknown>;
 
 export enum LogLevel {
@@ -10,4 +12,5 @@ export enum LogLevel {
 export interface LoggerPort {
   info(message: string, logData?: LogData): void;
   error(input: { message?: string; error?: Error; logData?: LogData }): void;
+  exception(error: ErrorBase): void;
 }
