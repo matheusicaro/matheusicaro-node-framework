@@ -75,3 +75,58 @@ describe('MyController', () => {
 });
 ```
 </details>
+
+## Logger
+
+This is a custom logger already setup with [winston](https://github.com/winstonjs/winston#readme).
+The logger will be print in files app console
+
+<details><summary>How to use it?</summary>
+
+#### 1. by constructor injection
+```typescript
+import { DependencyInjectionTokens } from 'matheusicaro-node-framework';
+
+class MyController {
+  constructor(
+    @inject(DependencyInjectionTokens.Logger)
+    private logger: LoggerPort
+  ) {}
+
+  public handler(): Promise<void> {
+    this.logger.info("trace handler")
+  }
+}
+```
+
+#### 2. by resolving the instance
+```typescript
+  const logger = getDependencyRegistryInstance().resolve(ProviderTokens.MyProvider)
+
+  logger.info(message)
+  logger.info(message, { id: "...", status: "..." })
+
+  logger.error(message)
+  logger.error(message, { id: "...", status: "...", error })
+
+  logger.exception(error): void;
+```
+</details>
+
+<details><summary>Log files</summary>
+
+#### Files location:
+ - file: `logs/exceptions.log`
+```
+2024-11-27 14:47:58 [ ERROR ]==> uncaughtException: failed on starting the app Error: failed on starting the app
+    at Timeout._onTimeout (/Users/matheus.icaro/DEVELOPMENT/repositories/test/mi-gateway-service/src/app.ts:41:9)
+    at listOnTimeout (node:internal/timers:573:17)
+    at processTimers (node:internal/timers:514:7)
+```
+ - file: `logs/combined.log`
+```
+2024-11-27 14:50:53 [ ERROR ]==> {"message":"failed on starting the app","logData":{"trace_id":"fake_id","originalError":{"message":"its fail","stack":"Error: its fail\n    at Timeout._onTimeout (/Users/matheus.icaro/DEVELOPMENT/repositories/test/mi-gateway-service/src/app.ts:44:11)\n    at listOnTimeout (node:internal/timers:573:17)\n    at processTimers (node:internal/timers:514:7)"}}}
+
+2024-11-27 14:53:37 [ INFO ]==> {"message":"logging data for trace","logData":{"id":"fake_id"}}
+```
+</details>

@@ -37,7 +37,7 @@ class LoggerAdapter implements LoggerPort {
   public info(message: string, logData?: LogData): void {
     const log = this.formatDataToBeLogged({ message, logData });
 
-    this.instance.info(log);
+    this.instance.info(JSON.stringify(log));
   }
 
   /**
