@@ -3,7 +3,25 @@
 This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
 A bunch of resources here might be useful for our next project 😃👍
 
-- [Dependency Injection](#dependency-injection)
+- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro)
+  - [Dependency Injection](#dependency-injection)
+      - [1. create your registers:](#1-create-your-registers)
+      - [2. Start your registry](#2-start-your-registry)
+      - [3. Use it](#3-use-it)
+  - [Logger](#logger)
+      - [1. by constructor injection](#1-by-constructor-injection)
+      - [2. by resolving the instance](#2-by-resolving-the-instance)
+      - [Files location:](#files-location)
+  - [Controller Base](#controller-base)
+    - [RestControllerBase](#restcontrollerbase)
+  - [Errors](#errors)
+      - [ErrorBase](#errorbase)
+      - [InvalidArgumentError](#invalidargumenterror)
+      - [InvalidRequestError](#invalidrequesterror)
+      - [InvalidStateError](#invalidstateerror)
+      - [NotFoundError](#notfounderror)
+
+
 
 <br>
 
@@ -186,3 +204,100 @@ export { HealthController };
 ```
 
 </details>
+
+<br>
+
+## Errors
+
+You can use some custom errors in your business logic already implemented from `ErrorBase` which handle with logger and traces.
+
+#### [ErrorBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/error-base.ts#L35)
+
+you can implement your own errors from this `ErrorBase`.
+
+<details>
+<summary>How to use it?</summary>
+
+```typescript
+class MyCustomErrorError extends ErrorBase {
+  constructor(message: string);
+  constructor(trace: InvalidStateErrorTrace);
+  constructor(message: string, trace?: InvalidStateErrorTrace);
+  constructor(messageOrTrace: string | InvalidStateErrorTrace, _trace?: InvalidStateErrorTrace) {
+    const { message, trace } = alignArgs(messageOrTrace, _trace);
+
+    super(ErrorCode.INVALID_STATE, InvalidStateError.name, message, {
+      originalError: trace?.logData.error,
+      ...(trace?.logData && {
+        logs: {
+          data: trace?.logData,
+          level: LogLevel.ERROR,
+          instance: container.resolve<LoggerPort>(DependencyInjectionTokens.Logger)
+        }
+      })
+    });
+  }
+}
+
+export { InvalidStateError };
+```
+
+</details>
+
+#### [InvalidArgumentError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-argument.error.ts#L21)
+
+`InvalidArgumentError` is an type of error recommended to be used when invalid argument is informed.
+
+- This error will:
+  - surface to the user with known message for the invalid argument.
+  - Log automatically the error & "trace" field when it is present in the args
+    - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
+
+```typescript
+new InvalidArgumentError('invalid argument', { logData: { traceId: 'id' } });
+```
+
+#### [InvalidRequestError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-request.error.ts#L21)
+
+`InvalidRequestError` is an type of error recommended to be used when invalid argument is informed.
+
+This error will:
+
+- surface to the user with known message for the invalid request.
+- Log automatically the error & "trace" field when it is present in the args
+  - `new InvalidRequestError(message)` => do not error & message
+  - `new InvalidRequestError(message, trace)` => do log message and trace fields
+
+```typescript
+new InvalidRequestError('invalid request', { logData: { traceId: 'id' } });
+```
+
+#### [InvalidStateError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-state.error.ts#L21)
+
+`InvalidStateError` is an type of error recommended to be used when an invalid state was found and your app is not able to be handle with.
+
+This error will:
+
+- surface to the user as a default error message (if not informed) once there is nothing the user can do at this point to fix the request
+- Log automatically the error & "trace" field when it is present in the args
+  - `new InvalidStateError(message)` => do not error & message
+  - `new InvalidStateError(message, trace)` => do log message and trace fields
+
+```typescript
+new InvalidStateError('invalid state found', { logData: { traceId: 'id' } });
+```
+
+#### [NotFoundError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/not-found.error.ts)
+
+`NotFoundError` is an type of error recommended to be used when a resource is not found.
+
+This error will:
+
+- surface to the user as a unknown error once there is nothing the user can do at this point to fix the request.
+- Log automatically the error & "trace" field when it is present in the args
+  - `new InvalidStateError(message)` => do not error & message
+  - `new InvalidStateError(message, trace)` => do log message and trace fields
+
+```typescript
+new NotFoundError('doc was not found', { logData: { docId: 'id' } });
+```
