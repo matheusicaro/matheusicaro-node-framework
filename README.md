@@ -3,17 +3,35 @@
 This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
 A bunch of resources here might be useful for our next project 😃👍
 
+#### Installing
+
+```
+npm i matheusicaro-node-framework
+```
+[npm package ](https://www.npmjs.com/package/matheusicaro-node-framework)
+
+
+<br>
+
+# Resources
+
+- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro) - [Installing](#installing)
   - [Dependency Injection](#dependency-injection)
+    - [1. create your registers:](#1-create-your-registers)
+    - [2. Start your registry](#2-start-your-registry)
+    - [3. Use it](#3-use-it)
   - [Logger](#logger)
+    - [1. by constructor injection](#1-by-constructor-injection)
+    - [2. by resolving the instance](#2-by-resolving-the-instance)
+    - [Files location:](#files-location)
   - [Controller Base](#controller-base)
     - [RestControllerBase](#restcontrollerbase)
   - [Errors](#errors)
-      - [ErrorBase](#errorbase)
-      - [InvalidArgumentError](#invalidargumenterror)
-      - [InvalidRequestError](#invalidrequesterror)
-      - [InvalidStateError](#invalidstateerror)
-      - [NotFoundError](#notfounderror)
-<br>
+    - [ErrorBase](#errorbase)
+    - [InvalidArgumentError](#invalidargumenterror)
+    - [InvalidRequestError](#invalidrequesterror)
+    - [InvalidStateError](#invalidstateerror)
+    - [NotFoundError](#notfounderror)
 
 ## Dependency Injection
 
@@ -25,7 +43,7 @@ If we decide to use another dependency injection provider, it will be easier for
 
 <details><summary>How to use it?</summary>
 
-#### 1. create your registers:
+#### 1. Create your registers:
 
 ```typescript
 function registerProviders(this: DependencyRegistry): void {
@@ -93,7 +111,7 @@ describe('MyController', () => {
 ## Logger
 
 This is a custom logger already setup with [winston](https://github.com/winstonjs/winston#readme).
-The logger will be print in files app console
+The logger will be printed in the files app console
 
 <details><summary>How to use it?</summary>
 
@@ -157,7 +175,7 @@ class MyController {
 
 ## Controller Base
 
-The controller base is an abstract class with some useful resources to use, like handle with errors and response to the client with a pre-defined payload.
+The controller base is an abstract class with some useful resources to use, like handling errors and responding to the client with a pre-defined payload.
 
 ### RestControllerBase
 
@@ -236,10 +254,10 @@ export { InvalidStateError };
 
 #### [InvalidArgumentError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-argument.error.ts#L21)
 
-`InvalidArgumentError` is an type of error recommended to be used when invalid argument is informed.
+`InvalidArgumentError` is a type of error recommended to be used when an invalid argument is informed.
 
 - This error will:
-  - surface to the user with known message for the invalid argument.
+  - surface to the user with a known message for the invalid argument.
   - Log automatically the error & "trace" field when it is present in the args
     - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
 
@@ -249,11 +267,11 @@ new InvalidArgumentError('invalid argument', { logData: { traceId: 'id' } });
 
 #### [InvalidRequestError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-request.error.ts#L21)
 
-`InvalidRequestError` is an type of error recommended to be used when invalid argument is informed.
+`InvalidRequestError` is a type of error recommended to be used when an invalid argument is informed.
 
 This error will:
 
-- surface to the user with known message for the invalid request.
+- surface to the user with a known message for the invalid request.
 - Log automatically the error & "trace" field when it is present in the args
   - `new InvalidRequestError(message)` => do not error & message
   - `new InvalidRequestError(message, trace)` => do log message and trace fields
@@ -264,7 +282,7 @@ new InvalidRequestError('invalid request', { logData: { traceId: 'id' } });
 
 #### [InvalidStateError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-state.error.ts#L21)
 
-`InvalidStateError` is an type of error recommended to be used when an invalid state was found and your app is not able to be handle with.
+`InvalidStateError` is a type of error recommended to be used when an invalid state is found and your app is not able to handle with.
 
 This error will:
 
@@ -279,11 +297,11 @@ new InvalidStateError('invalid state found', { logData: { traceId: 'id' } });
 
 #### [NotFoundError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/not-found.error.ts)
 
-`NotFoundError` is an type of error recommended to be used when a resource is not found.
+`NotFoundError` is a type of error recommended to be used when a resource is not found.
 
 This error will:
 
-- surface to the user as a unknown error once there is nothing the user can do at this point to fix the request.
+- surface to the user as an unknown error once there is nothing the user can do at this point to fix the request.
 - Log automatically the error & "trace" field when it is present in the args
   - `new InvalidStateError(message)` => do not error & message
   - `new InvalidStateError(message, trace)` => do log message and trace fields
@@ -291,3 +309,7 @@ This error will:
 ```typescript
 new NotFoundError('doc was not found', { logData: { docId: 'id' } });
 ```
+
+--- 
+
+<img width="260" src="https://github.com/user-attachments/assets/a18a8fc2-bdec-43f8-a691-cb925efe6361">
