@@ -13,9 +13,6 @@ A bunch of resources here might be useful for our next project 😃👍
       - [InvalidRequestError](#invalidrequesterror)
       - [InvalidStateError](#invalidstateerror)
       - [NotFoundError](#notfounderror)
-
-
-
 <br>
 
 ## Dependency Injection
