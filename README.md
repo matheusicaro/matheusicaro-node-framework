@@ -3,15 +3,8 @@
 This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
 A bunch of resources here might be useful for our next project 😃👍
 
-- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro)
   - [Dependency Injection](#dependency-injection)
-      - [1. create your registers:](#1-create-your-registers)
-      - [2. Start your registry](#2-start-your-registry)
-      - [3. Use it](#3-use-it)
   - [Logger](#logger)
-      - [1. by constructor injection](#1-by-constructor-injection)
-      - [2. by resolving the instance](#2-by-resolving-the-instance)
-      - [Files location:](#files-location)
   - [Controller Base](#controller-base)
     - [RestControllerBase](#restcontrollerbase)
   - [Errors](#errors)
