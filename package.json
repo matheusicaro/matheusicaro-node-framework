@@ -1,6 +1,6 @@
 {
   "name": "matheusicaro-node-framework",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Framework as pack of my custom basic configuration setups for a quick build of services and APIs for Node.",
   "author": "@matheusicaro",
   "license": "MIT",
