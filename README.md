@@ -15,17 +15,16 @@ npm i matheusicaro-node-framework
 
 # Resources
 
-- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro) - [Installing](#installing)
-  - [Dependency Injection](#dependency-injection)
-  - [Logger](#logger)
-  - [Controller Base](#controller-base)
-    - [RestControllerBase](#restcontrollerbase)
-  - [Errors](#errors)
-    - [ErrorBase](#errorbase)
-    - [InvalidArgumentError](#invalidargumenterror)
-    - [InvalidRequestError](#invalidrequesterror)
-    - [InvalidStateError](#invalidstateerror)
-    - [NotFoundError](#notfounderror)
+- [Dependency Injection](#dependency-injection)
+- [Logger](#logger)
+- [Controller Base](#controller-base)
+  - [RestControllerBase](#restcontrollerbase)
+- [Errors](#errors)
+  - [ErrorBase](#errorbase)
+  - [InvalidArgumentError](#invalidargumenterror)
+  - [InvalidRequestError](#invalidrequesterror)
+  - [InvalidStateError](#invalidstateerror)
+  - [NotFoundError](#notfounderror)
 
 ## Dependency Injection
 
