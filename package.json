@@ -1,6 +1,6 @@
 {
   "name": "matheusicaro-node-framework",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Framework as pack of my custom basic configuration setups for a quick build of services and APIs for Node.",
   "author": "@matheusicaro",
   "license": "MIT",
@@ -26,6 +26,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "typings": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
     "pre-publish": "npm run build & npm publish",
