@@ -1,6 +1,6 @@
 # @mi-node-framework (matheusicaro)
 
-This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
+This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc..
 A bunch of resources here might be useful for our next project 😃👍
 
 #### Installing
