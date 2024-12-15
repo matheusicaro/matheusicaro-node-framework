@@ -8,23 +8,31 @@ A bunch of resources here might be useful for our next project 😃👍
 ```
 npm i matheusicaro-node-framework
 ```
-[npm package ](https://www.npmjs.com/package/matheusicaro-node-framework)
 
+[npm package ](https://www.npmjs.com/package/matheusicaro-node-framework)
 
 <br>
 
 # Resources
 
-- [Dependency Injection](#dependency-injection)
-- [Logger](#logger)
-- [Controller Base](#controller-base)
-  - [RestControllerBase](#restcontrollerbase)
-- [Errors](#errors)
-  - [ErrorBase](#errorbase)
-  - [InvalidArgumentError](#invalidargumenterror)
-  - [InvalidRequestError](#invalidrequesterror)
-  - [InvalidStateError](#invalidstateerror)
-  - [NotFoundError](#notfounderror)
+- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro) - [Installing](#installing)
+- [Resources](#resources)
+  - [Dependency Injection](#dependency-injection)
+    - [1. Create your registers:](#1-create-your-registers)
+    - [2. Start your registry](#2-start-your-registry)
+    - [3. Use it](#3-use-it)
+  - [Logger](#logger)
+    - [1. by constructor injection](#1-by-constructor-injection)
+    - [2. by resolving the instance](#2-by-resolving-the-instance)
+    - [Files location:](#files-location)
+  - [Controller Base](#controller-base)
+    - [RestControllerBase](#restcontrollerbase)
+  - [Errors](#errors)
+    - [ErrorBase](#errorbase)
+    - [InvalidArgumentError](#invalidargumenterror)
+    - [InvalidRequestError](#invalidrequesterror)
+    - [InvalidStateError](#invalidstateerror)
+    - [NotFoundError](#notfounderror)
 
 ## Dependency Injection
 
@@ -228,7 +236,8 @@ class MyCustomErrorError extends ErrorBase {
     const { message, trace } = alignArgs(messageOrTrace, _trace);
 
     super(ErrorCode.INVALID_STATE, InvalidStateError.name, message, {
-      originalError: trace?.logData.error,
+      userMessage: trace?.userMessage,
+      originalError: trace?.logData?.error,
       ...(trace?.logData && {
         logs: {
           data: trace?.logData,
@@ -255,8 +264,10 @@ export { InvalidStateError };
     - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidArgumentError('invalid argument', { logData: { traceId: 'id' } });
+new InvalidArgumentError('invalid argument', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
+- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+<br>
 
 #### [InvalidRequestError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-request.error.ts#L21)
 
@@ -270,8 +281,10 @@ This error will:
   - `new InvalidRequestError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidRequestError('invalid request', { logData: { traceId: 'id' } });
+new InvalidRequestError('invalid request', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
+- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+<br>
 
 #### [InvalidStateError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-state.error.ts#L21)
 
@@ -285,8 +298,11 @@ This error will:
   - `new InvalidStateError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidStateError('invalid state found', { logData: { traceId: 'id' } });
+new InvalidStateError('invalid state found', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
+
+- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+<br>
 
 #### [NotFoundError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/not-found.error.ts)
 
@@ -300,9 +316,11 @@ This error will:
   - `new InvalidStateError(message, trace)` => do log message and trace fields
 
 ```typescript
-new NotFoundError('doc was not found', { logData: { docId: 'id' } });
+new NotFoundError('doc was not found', { userMessage: 'friendly user message', logData: { docId: 'id' } });
 ```
 
---- 
+- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+
+---
 
 <img width="260" src="https://github.com/user-attachments/assets/a18a8fc2-bdec-43f8-a691-cb925efe6361">
