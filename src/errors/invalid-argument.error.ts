@@ -5,7 +5,7 @@ import { LoggerPort, LogLevel } from '../index';
 import { DependencyInjectionTokens } from '../configuration/dependency-registries';
 
 export type InvalidArgumentErrorTrace = ErrorTrace & {
-  message: string;
+  message?: string;
 };
 /**
  * Error when an invalid argument in informed.
@@ -22,18 +22,19 @@ class InvalidArgumentError extends ErrorBase {
   constructor(message: string);
   constructor(trace: InvalidArgumentErrorTrace);
   constructor(message: string, trace?: InvalidArgumentErrorTrace);
-  constructor(messageOrTrace: string | InvalidArgumentErrorTrace, trace?: InvalidArgumentErrorTrace) {
-    const { message, trace: traceAligned } = alignArgs(messageOrTrace, trace);
+  constructor(messageOrTrace: string | InvalidArgumentErrorTrace, _trace?: InvalidArgumentErrorTrace) {
+    const { message, trace } = alignArgs(messageOrTrace, _trace);
 
     if (!message) {
       throw new Error('The message error for InvalidArgumentError cannot be undefined');
     }
 
     super(ErrorCode.INVALID_ARGUMENT, InvalidArgumentError.name, message, {
-      originalError: traceAligned?.logData.error,
-      ...(traceAligned?.logData && {
+      userMessage: trace?.userMessage,
+      originalError: trace?.logData?.error,
+      ...(trace?.logData && {
         logs: {
-          data: traceAligned?.logData,
+          data: trace?.logData,
           level: LogLevel.ERROR,
           instance: container.resolve<LoggerPort>(DependencyInjectionTokens.Logger)
         }

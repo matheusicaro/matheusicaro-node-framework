@@ -17,6 +17,10 @@ describe('ErrorBase', () => {
     });
   });
 
+  describe('ErrorTrace', () => {
+    test('should call log instance exception correctly when trace log is present in the args', () => {});
+  });
+
   describe('toString', () => {
     test('should print the error instance correctly', () => {});
   });

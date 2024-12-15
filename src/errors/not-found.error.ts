@@ -24,7 +24,8 @@ class NotFoundError extends ErrorBase {
     const { message = 'Not found', trace } = alignArgs(messageOrTrace, _trace);
 
     super(ErrorCode.NOT_FOUND, NotFoundError.name, message, {
-      originalError: trace?.logData.error,
+      userMessage: trace?.userMessage,
+      originalError: trace?.logData?.error,
       ...(trace?.logData && {
         logs: {
           data: trace?.logData,

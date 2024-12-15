@@ -5,7 +5,7 @@ import { LoggerPort, LogLevel } from '../';
 import { DependencyInjectionTokens } from '../';
 
 export type InvalidRequestErrorTrace = ErrorTrace & {
-  message: string;
+  message?: string;
 };
 /**
  * Error when an invalid request is not able to be processed.
@@ -30,7 +30,8 @@ class InvalidRequestError extends ErrorBase {
     }
 
     super(ErrorCode.INVALID_REQUEST, InvalidRequestError.name, message, {
-      originalError: trace?.logData.error,
+      userMessage: trace?.userMessage,
+      originalError: trace?.logData?.error,
       ...(trace?.logData && {
         logs: {
           data: trace?.logData,
