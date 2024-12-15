@@ -1,7 +1,14 @@
 import { container } from 'tsyringe';
 import { NextFunction, Request, Response } from 'express';
 
-import { DependencyInjectionTokens, LoggerPort, ErrorBase } from '../';
+import {
+  DependencyInjectionTokens,
+  LoggerPort,
+  ErrorBase,
+  InvalidArgumentError,
+  InvalidRequestError,
+  NotFoundError
+} from '../';
 
 /**
  * Interfaces to defined a the args of the ControllerBase.
@@ -11,6 +18,10 @@ export interface ServerRequest extends Request {}
 export interface ServerResponse extends Response {}
 export interface ServerResponseData<T> extends Response<T> {}
 export interface ServerNextFunction extends NextFunction {}
+
+const BAD_GATEWAY_STATUS_CODE = 502;
+const BAD_REQUEST_STATUS_CODE = 400;
+const NOT_FOUND_STATUS_CODE = 404;
 
 /**
  * RestControllerBase is a base for controller implementations for HTTP REST requests
@@ -25,7 +36,7 @@ abstract class RestControllerBase {
   protected failedRequestPayload;
 
   constructor(
-    customFailedRequestStatusCode = 502,
+    customFailedRequestStatusCode = BAD_GATEWAY_STATUS_CODE,
     customFailedRequestPayload = { message: 'error on processing the request' }
   ) {
     this.logger = container.resolve(DependencyInjectionTokens.Logger);
@@ -43,19 +54,40 @@ abstract class RestControllerBase {
    * @param error
    * @param responseData: metadata to be added in the response payload
    * @param response: ServerResponse
-   *
+   * @param setStatusCodeByErrorType: will set default status code by error type from errors, ex: NotFoundError[404], InvalidRequestError[400], etc
    * @returns
    */
   protected handleErrorThenRespondFailedOnRequest(input: {
-    error: unknown;
+    error: unknown | ErrorBase;
     responseData?: Record<string, unknown>;
     response: ServerResponse;
+    setStatusCodeByErrorType?: boolean;
   }): ServerResponse {
     this.logError(input.error);
 
-    return input.response
-      .status(this.failedRequestStatusCode)
-      .json({ ...this.failedRequestPayload, ...(input.responseData && { ...input.responseData }) });
+    const userMessage = (input.error as ErrorBase)?.userMessage;
+
+    const statusCode = input.setStatusCodeByErrorType
+      ? this.getStatusCodeByError(input.error)
+      : this.failedRequestStatusCode;
+
+    return input.response.status(statusCode).json({
+      ...this.failedRequestPayload,
+      ...(userMessage && { userMessage }),
+      ...(input.responseData && { ...input.responseData })
+    });
+  }
+
+  private getStatusCodeByError(error: unknown): number {
+    if (error instanceof InvalidArgumentError || error instanceof InvalidRequestError) {
+      return BAD_REQUEST_STATUS_CODE;
+    }
+
+    if (error instanceof NotFoundError) {
+      return NOT_FOUND_STATUS_CODE;
+    }
+
+    return BAD_GATEWAY_STATUS_CODE;
   }
 
   private logError(error: unknown): void {
