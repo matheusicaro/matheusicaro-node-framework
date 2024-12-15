@@ -1,12 +1,14 @@
 import { LogData, LoggerPort, LogLevel } from '../';
 
 export interface ErrorTrace {
-  logData: LogData & {
+  userMessage?: string;
+  logData?: LogData & {
     error?: Error;
   };
 }
 
 export interface ErrorTraceImplement {
+  userMessage?: string;
   originalError?: Error;
   logs?: {
     data?: LogData;
@@ -37,6 +39,7 @@ abstract class ErrorBase extends Error {
   readonly isErrorBase: boolean;
   readonly logLevel?: LogLevel;
   readonly logData?: LogData;
+  readonly userMessage?: string;
   readonly originalErrorMessage?: string;
 
   constructor(code: ErrorCode, name: string, message: string, trace?: ErrorTraceImplement) {
@@ -45,6 +48,8 @@ abstract class ErrorBase extends Error {
     this.code = code;
     this.name = name;
     this.isErrorBase = true;
+
+    this.userMessage = trace?.userMessage;
 
     if (trace?.originalError) {
       this.stack = trace.originalError.stack;
@@ -66,6 +71,7 @@ abstract class ErrorBase extends Error {
 
 interface Args {
   message?: string;
+  userMessage?: string;
   trace?: ErrorTrace;
 }
 
