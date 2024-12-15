@@ -26,7 +26,8 @@ class InvalidStateError extends ErrorBase {
     const { message = 'Invalid state found during service request', trace } = alignArgs(messageOrTrace, _trace);
 
     super(ErrorCode.INVALID_STATE, InvalidStateError.name, message, {
-      originalError: trace?.logData.error,
+      userMessage: trace?.userMessage,
+      originalError: trace?.logData?.error,
       ...(trace?.logData && {
         logs: {
           data: trace?.logData,
