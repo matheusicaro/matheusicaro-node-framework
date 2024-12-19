@@ -52,7 +52,6 @@
     "fishery": "^2.2.2",
     "globals": "^15.12.0",
     "logform": "^2.7.0",
-    "matheusicaro-node-framework": "^1.0.7-next.2",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.8.0",
     "vitest": "^1.6.0",
