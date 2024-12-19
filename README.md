@@ -25,6 +25,7 @@ npm i matheusicaro-node-framework
     - [Factory](#factory)
     - [Jest Stub](#jeststub)
     - [Vitest Stub](#viteststub)
+    - [DeepStubObject](#deepstubobject)
   - [Errors](#errors)
     - [ErrorBase](#errorbase)
     - [InvalidArgumentError](#invalidargumenterror)
@@ -367,6 +368,39 @@ You can easily stub/mock when testing with **Vitest**.
 ```
 </details>
 <br>
+
+### DeepStubObject
+
+DeepStubObject is a deep typer to be used when JestStub or VitesStub don't return the deeper prop.
+
+<details>
+<summary>How to use it? 👇</summary>
+
+```typescript
+  import { jestStub, vitestStub, DeepStubObject } from 'matheusicaro-node-framework';
+
+  //...
+
+  let stubProvider: ProviderInterface & DeepStubObject<ProviderInterface>;
+
+  beforeAll(() => {
+
+    // with jestStub
+    stubProvider = jestStub<ProviderInterface>();
+
+    // with vitestStub
+    stubProvider = vitestStub<ProviderInterface>();
+
+    myClass = new MyClass(stubProvider);
+  });
+
+  test('should stub function correctly and set id', async () => {
+    //...
+    stubMyInterface.anyProp.deepProp.deeperProp.mockResolvedValueOnce(100);
+  });
+```
+</details>
+<br>
 <br>
 
 
@@ -405,8 +439,8 @@ class MyCustomErrorError extends ErrorBase {
 
 export { InvalidStateError };
 ```
-
 </details>
+<br>
 
 #### [InvalidArgumentError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-argument.error.ts#L21)
 
