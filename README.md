@@ -21,7 +21,7 @@ npm i matheusicaro-node-framework
   - [Logger](#logger)
   - [Controller Base](#controller-base)
     - [RestControllerBase](#restcontrollerbase)
-  - [Testing](#errors)
+  - [Testing](#testing)
   - [Errors](#errors)
     - [ErrorBase](#errorbase)
     - [InvalidArgumentError](#invalidargumenterror)
