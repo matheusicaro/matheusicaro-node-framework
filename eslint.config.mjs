@@ -6,9 +6,7 @@ import pluginJest from 'eslint-plugin-jest';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
-    ignores: [
-      'dist'
-    ]
+    ignores: ['dist']
   },
   { files: ['**/*.{js,mjs,cjs,ts}', 'test/**'], ...pluginJest.configs['flat/recommended'] },
   {
