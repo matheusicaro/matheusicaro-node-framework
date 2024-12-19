@@ -5,7 +5,7 @@ import { RecursivePartial } from './common-types';
 import { DeepStubObject } from './deep-stub';
 
 /**
- * Jest stub for interface and objects.
+ * jestStub is a stub using jest mock for interface, types and objects.
  * How to use: TODO....
  */
 export function jestStub<T extends {}>(base: RecursivePartial<T> = {}): T & DeepStubObject<T> {

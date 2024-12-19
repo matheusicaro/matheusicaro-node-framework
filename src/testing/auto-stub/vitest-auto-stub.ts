@@ -15,9 +15,8 @@ export type VitestStub<T> = {
 };
 
 /**
- * Vitest stub for interface and objects
- * how to use?
- * ref: TODO
+ * vitestStub is a stub using jest mock for interface, types and objects.
+ * How to use: TODO....
  */
 export function vitestStub<T extends {}>(base: RecursivePartial<T> = {}): T & DeepStubObject<T> {
   const map = new Map();

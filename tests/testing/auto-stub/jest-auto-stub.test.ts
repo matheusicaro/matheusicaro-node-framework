@@ -1,4 +1,4 @@
-import { faker, stub } from '../../../src/testing';
+import { faker, jestStub } from '../../../src/testing';
 
 type AnyFunction = () => string;
 
@@ -17,7 +17,7 @@ interface TestObject {
 describe('jstub', () => {
   beforeEach(jest.resetAllMocks);
 
-  const stubTestObject = stub.jest<TestObject>();
+  const stubTestObject = jestStub<TestObject>();
 
   describe('stubbing', () => {
     test('should stub function correctly and set id', async () => {
