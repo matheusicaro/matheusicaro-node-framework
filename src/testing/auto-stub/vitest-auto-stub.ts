@@ -17,7 +17,7 @@ export type VitestStub<T> = {
 /**
  * vitestStub is a stub using jest mock for interface, types and objects.
  *
- * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#testing
+ * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#viteststub
  */
 export function vitestStub<T extends {}>(base: RecursivePartial<T> = {}): T & DeepStubObject<T> {
   const map = new Map();
