@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { RecursivePartial, TrapsType } from './common-types';
 
+/**
+ * When use Vitest the vi will be provided in the global scope
+ * ref: https://vitest.dev/config/
+ */
 declare const vi: any;
 
 const commonHas = (target: RecursivePartial<any>, prop: string | symbol): boolean => {

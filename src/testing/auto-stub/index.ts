@@ -1,9 +1,9 @@
-import { jstub } from './jest-auto-stub';
-import { vstub, VitestStub } from './vitest-auto-stub';
+import { jestStub } from './jest-auto-stub';
+import { vitestStub, VitestStub } from './vitest-auto-stub';
 
 const stub = {
-  jest: jstub,
-  vitest: vstub
+  jest: jestStub,
+  vitest: vitestStub
 };
 
 export * from './deep-stub';
