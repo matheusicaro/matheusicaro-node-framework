@@ -7,7 +7,7 @@ import { DeepStubObject } from './deep-stub';
 /**
  * jestStub is a stub using jest mock for interface, types and objects.
  *
- * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/blob/28-add-factory-builder-for-unit-tests/README.md#jeststub
+ * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#jeststub
  */
 export function jestStub<T extends {}>(base: RecursivePartial<T> = {}): T & DeepStubObject<T> {
   const map = new Map();
