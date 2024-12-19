@@ -16,7 +16,7 @@ type DeepStubValue<T> = T extends Fn
  *
  *  deep.more.deep.end.deep.
  *
- * how to use: https://github.com/matheusicaro/matheusicaro-node-framework/blob/28-add-factory-builder-for-unit-tests/README.md#deepstubobject
+ * how to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#deepstubobject
  */
 export type DeepStubObject<T> = {
   [Key in keyof T]: DeepStubValue<T[Key]>;
