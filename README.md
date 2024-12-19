@@ -5,11 +5,11 @@ A bunch of resources here might be useful for our next project 😃👍
 
 #### Installing
 
+[npm package](https://www.npmjs.com/package/matheusicaro-node-framework)
+
 ```
 npm i matheusicaro-node-framework
 ```
-
-[npm package ](https://www.npmjs.com/package/matheusicaro-node-framework)
 
 <br>
 
@@ -18,15 +18,10 @@ npm i matheusicaro-node-framework
 - [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro) - [Installing](#installing)
 - [Resources](#resources)
   - [Dependency Injection](#dependency-injection)
-    - [1. Create your registers:](#1-create-your-registers)
-    - [2. Start your registry](#2-start-your-registry)
-    - [3. Use it](#3-use-it)
   - [Logger](#logger)
-    - [1. by constructor injection](#1-by-constructor-injection)
-    - [2. by resolving the instance](#2-by-resolving-the-instance)
-    - [Files location:](#files-location)
   - [Controller Base](#controller-base)
     - [RestControllerBase](#restcontrollerbase)
+  - [Testing](#errors)
   - [Errors](#errors)
     - [ErrorBase](#errorbase)
     - [InvalidArgumentError](#invalidargumenterror)
@@ -215,6 +210,66 @@ export { HealthController };
 </details>
 
 <br>
+
+## Testing
+
+#### JestStub
+
+JestStub is a stub using jest (`jest.fn()`) for interface, types and objects. 
+You can easially stub/mock when you are testing.
+
+```typescript
+  import { jestStub } from 'matheusicaro-node-framework';
+
+  //...
+
+  const stubMyInterface = jestStub<MyInterface>();
+
+  const myClass = new MyClass(stubMyInterface)
+
+  //...
+
+  test('should stub function correctly and set id', async () => {
+    const userId = "id",
+
+    stubMyInterface.anyMethod.mockResolvedValueOnce(100);
+
+    const result = myClass.run(userId)
+
+    expect(result).toEqual(100);
+    expect(stubMyInterface).toHaveBeenCalledTimes(1);
+    expect(stubMyInterface).toHaveBeenCalledWith(userId);
+  });
+```
+
+#### VitestStub
+
+VitestStub is a stub using [Vitest](https://vitest.dev/api/vi.html#vi-fn) (`vi.fn()`) for interface, types and objects. 
+You can easially stub/mock when you are testing with **Vitest**.
+
+```typescript
+  import { vitestStub } from 'matheusicaro-node-framework';
+
+  //...
+
+  const stubMyInterface = vitestStub<MyInterface>();
+
+  const myClass = new MyClass(stubMyInterface)
+
+  //...
+
+  test('should stub function correctly and set id', async () => {
+    const userId = "id",
+
+    stubMyInterface.anyMethod.mockResolvedValueOnce(100);
+
+    const result = myClass.run(userId)
+
+    expect(result).toEqual(100);
+    expect(stubMyInterface).toHaveBeenCalledTimes(1);
+    expect(stubMyInterface).toHaveBeenCalledWith(userId);
+  });
+```
 
 ## Errors
 
