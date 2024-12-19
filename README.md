@@ -1,6 +1,6 @@
 # @mi-node-framework (matheusicaro)
 
-This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc..
+This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
 A bunch of resources here might be useful for our next project 😃👍
 
 #### Installing
@@ -22,6 +22,9 @@ npm i matheusicaro-node-framework
   - [Controller Base](#controller-base)
     - [RestControllerBase](#restcontrollerbase)
   - [Testing](#testing)
+    - [Factory](#factory)
+    - [Jest Stub](#jeststub)
+    - [Vitest Stub](#viteststub)
   - [Errors](#errors)
     - [ErrorBase](#errorbase)
     - [InvalidArgumentError](#invalidargumenterror)
@@ -37,9 +40,9 @@ This abstraction allows me to use dependency injection in a contract defined in 
 
 If we decide to use another dependency injection provider, it will be easier for me to implement it here and update the following services with the new @mi-node-framework version.
 
-<details><summary>How to use it?</summary>
+How to use it:
 
-#### 1. Create your registers:
+<details><summary>1. Create your registers:</summary>
 
 ```typescript
 function registerProviders(this: DependencyRegistry): void {
@@ -50,8 +53,9 @@ function registerProviders(this: DependencyRegistry): void {
 
 export { registerProviders };
 ```
+</details>
 
-#### 2. Start your registry
+<details><summary>2. Start your registry</summary>
 
 ```typescript
 import { DependencyRegistry } from 'matheusicaro-node-framework';
@@ -68,8 +72,9 @@ const getDependencyRegistryInstance = (): DependencyRegistry => {
 
 export { getDependencyRegistryInstance };
 ```
+</details>
 
-#### 3. Use it
+<details><summary>3. Injecting it</summary>
 
 ```typescript
 // application layer
@@ -99,9 +104,9 @@ describe('MyController', () => {
   //...
 });
 ```
-
 </details>
 
+<br>
 <br>
 
 ## Logger
@@ -109,9 +114,9 @@ describe('MyController', () => {
 This is a custom logger already setup with [winston](https://github.com/winstonjs/winston#readme).
 The logger will be printed in the files app console
 
-<details><summary>How to use it?</summary>
+How to use it:
 
-#### 1. by constructor injection
+<details><summary>1. by constructor injection</summary>
 
 ```typescript
 import { DependencyInjectionTokens } from 'matheusicaro-node-framework';
@@ -127,8 +132,9 @@ class MyController {
   }
 }
 ```
+</details>
 
-#### 2. by resolving the instance
+<details><summary>2. by resolving the instance</summary>
 
 ```typescript
   const logger = getDependencyRegistryInstance().resolve(ProviderTokens.MyProvider)
@@ -141,10 +147,9 @@ class MyController {
 
   logger.exception(error): void;
 ```
-
 </details>
 
-<details><summary>Log files</summary>
+<details><summary>Location for the log files</summary>
 
 #### Files location:
 
@@ -164,9 +169,9 @@ class MyController {
 
 2024-11-27 14:53:37 [ INFO ]==> {"message":"logging data for trace","logData":{"id":"fake_id"}}
 ```
-
 </details>
 
+<br>
 <br>
 
 ## Controller Base
@@ -206,17 +211,102 @@ class HealthController extends RestControllerBase {
 
 export { HealthController };
 ```
-
 </details>
 
+<br>
 <br>
 
 ## Testing
 
-#### JestStub
+### Factory
 
-JestStub is a stub using jest (`jest.fn()`) for interface, types and objects. 
-You can easially stub/mock when you are testing.
+A factory to build objects easier with overrides for their props.
+
+How to use it:
+
+<details>
+<summary>1. create your factory</summary>
+
+- `src/application/domain/entities/my-object.ts`
+```typescript
+// your entity/object
+
+export interface MyObject {
+  id: string;
+  status: 'OPEN' | 'CLOSED' | 'IN_PROGRESS';
+}
+```
+
+- `tests/factories/my-object.factory.ts`:
+```typescript
+// declare any custom function to override specific params and make it easier to build specific objects
+class MyObjectFactory extends Factory<MyObject> {
+  closed() {
+    return this.params({
+      status: 'CLOSED',
+    });
+  }
+
+  open() {
+    return this.params({
+      status: 'OPEN',
+    });
+  }
+}
+
+// return the default object when build it
+const myObjectFactory = MyObjectFactory.define(() => ({
+  id: 'some-id',
+  status: 'IN_PROGRESS',
+}));
+
+export { myObjectFactory };
+```
+</details>
+
+<details>
+<summary>2. Use it in your tests</summary>
+
+```typescript
+    import { myObjectFactory } from '../factories/my-object.factory.ts';
+
+
+    it('should find all closed status', async () => {
+      
+      // build the object in the desired state pre-defined
+      const myObject = myObjectFactory.closed().build();
+
+      stubDatabase.findOne.mockResolvedValueOnce(myObject);
+
+      const result = await provider.findAllClosedStatus();
+
+      expect(result).toEqual([myObject]);
+    });
+
+
+    it('should find by id', async () => {
+
+      //override the build with any value for the fields from your object
+      const myObject = myObjectFactory.build({ id: "any id" });
+
+      stubDatabase.findOne.mockResolvedValueOnce(myObject);
+
+      const result = await provider.findById("any id");
+
+      expect(result).toEqual(myObject);
+    });
+```
+</details>
+<br>
+
+### JestStub
+
+JestStub is a stub using </details>
+ (`jest.fn()`) for interface, types and objects. 
+You can easily stub/mock when you are testing.
+
+<details>
+<summary>How to use it?</summary>
 
 ```typescript
   import { jestStub } from 'matheusicaro-node-framework';
@@ -241,11 +331,16 @@ You can easially stub/mock when you are testing.
     expect(stubMyInterface).toHaveBeenCalledWith(userId);
   });
 ```
+</details>
+<br>
 
-#### VitestStub
+### VitestStub
 
-VitestStub is a stub using [Vitest](https://vitest.dev/api/vi.html#vi-fn) (`vi.fn()`) for interface, types and objects. 
-You can easially stub/mock when you are testing with **Vitest**.
+VitestStub is a stub that uses [Vitest](https://vitest.dev/api/vi.html#vi-fn) (`vi.fn()`) for interfaces, types, and objects. 
+You can easily stub/mock when testing with **Vitest**.
+
+<details>
+<summary>How to use it? 👇</summary>
 
 ```typescript
   import { vitestStub } from 'matheusicaro-node-framework';
@@ -270,10 +365,14 @@ You can easially stub/mock when you are testing with **Vitest**.
     expect(stubMyInterface).toHaveBeenCalledWith(userId);
   });
 ```
+</details>
+<br>
+<br>
+
 
 ## Errors
 
-You can use some custom errors in your business logic already implemented from `ErrorBase` which handle with logger and traces.
+You can use some custom errors in your business logic already implemented from `ErrorBase` which handles with logger and traces.
 
 #### [ErrorBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/error-base.ts#L35)
 
@@ -313,7 +412,9 @@ export { InvalidStateError };
 
 `InvalidArgumentError` is a type of error recommended to be used when an invalid argument is informed.
 
-- This error will:
+<details>
+<summary>This error will: 👇</summary>
+
   - surface to the user with a known message for the invalid argument.
   - Log automatically the error & "trace" field when it is present in the args
     - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
@@ -321,14 +422,18 @@ export { InvalidStateError };
 ```typescript
 new InvalidArgumentError('invalid argument', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
-- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
 <br>
+</details>
+<br>
+
 
 #### [InvalidRequestError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-request.error.ts#L21)
 
 `InvalidRequestError` is a type of error recommended to be used when an invalid argument is informed.
 
-This error will:
+<details>
+<summary>This error will: 👇</summary>
 
 - surface to the user with a known message for the invalid request.
 - Log automatically the error & "trace" field when it is present in the args
@@ -338,14 +443,18 @@ This error will:
 ```typescript
 new InvalidRequestError('invalid request', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
-- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+<br>
+</details>
 <br>
 
 #### [InvalidStateError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-state.error.ts#L21)
 
 `InvalidStateError` is a type of error recommended to be used when an invalid state is found and your app is not able to handle with.
 
-This error will:
+<details>
+<summary>This error will: 👇</summary>
+
 
 - surface to the user as a default error message (if not informed) once there is nothing the user can do at this point to fix the request
 - Log automatically the error & "trace" field when it is present in the args
@@ -356,14 +465,18 @@ This error will:
 new InvalidStateError('invalid state found', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
 ```
 
-- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+<br>
+</details>
 <br>
 
 #### [NotFoundError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/not-found.error.ts)
 
 `NotFoundError` is a type of error recommended to be used when a resource is not found.
 
-This error will:
+<details>
+<summary>This error will: 👇</summary>
+
 
 - surface to the user as an unknown error once there is nothing the user can do at this point to fix the request.
 - Log automatically the error & "trace" field when it is present in the args
@@ -374,7 +487,11 @@ This error will:
 new NotFoundError('doc was not found', { userMessage: 'friendly user message', logData: { docId: 'id' } });
 ```
 
-- `userMessage` can be send in the response automatically when use RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
+
+<br>
+</details>
+<br>
 
 ---
 
