@@ -5,7 +5,7 @@
     "noImplicitAny": false
   },
   "include": [
-    "../src/*",
+    "../src/**/*",
   ],
   "exclude": [
     "./jest.setup.ts",
