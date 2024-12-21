@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Factory, faker } from '../../../src/testing';
+import { faker } from '@faker-js/faker';
+
+import { Factory } from '../../../src/testing';
 
 type ExampleTest = {
   id: string;
