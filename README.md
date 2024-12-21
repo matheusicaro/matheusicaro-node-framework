@@ -11,11 +11,28 @@ A bunch of resources here might be useful for our next project 😃👍
 npm i matheusicaro-node-framework
 ```
 
+#### Local Test
+
+<details>
+<summary>How to test the library locally?</summary>
+
 <br>
+1. in the library folder `mi-node-framework/`, run:
+```terminal
+npm i
+npm run build
+npm link
+```
+
+2. in the your project folder:
+```terminal
+npm uninstall matheusicaro-node-framework
+npm link matheusicaro-node-framework
+```
+</details>
 
 # Resources
 
-- [@mi-node-framework (matheusicaro)](#mi-node-framework-matheusicaro) - [Installing](#installing)
 - [Resources](#resources)
   - [Dependency Injection](#dependency-injection)
   - [Logger](#logger)
