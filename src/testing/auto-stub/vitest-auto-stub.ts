@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Mock } from 'vitest';
 
 import { ArgumentTypes, Fn, RecursivePartial } from './common-types';
 import { commonGet, commonHas } from './common';
 import { DeepStubObject } from './deep-stub';
+import { Mock } from './vitest-auto-stub.types';
 
 type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
 
@@ -13,6 +13,19 @@ type StubValue<T> = T extends Fn ? Mock<ArgumentTypes<T>, ReturnType<T>> : T;
 export type VitestStub<T> = {
   [P in keyof T]: StubValue<T[P]>;
 };
+
+/**
+ * Declaring global worker to fix issue from Vite in Vitest
+ * issue: https://github.com/vitejs/vite/issues/14513
+ */
+declare global {
+  interface Worker {}
+
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace WebAssembly {
+    interface Module {}
+  }
+}
 
 /**
  * vitestStub is a stub using jest mock for interface, types and objects.
