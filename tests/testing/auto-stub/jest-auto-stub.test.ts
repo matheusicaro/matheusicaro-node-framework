@@ -1,4 +1,6 @@
-import { faker, jestStub } from '../../../src/testing';
+import { faker } from '@faker-js/faker';
+
+import { jestStub } from '../../../src/testing';
 
 type AnyFunction = () => string;
 
