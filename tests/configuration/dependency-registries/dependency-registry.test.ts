@@ -1,12 +1,20 @@
-import { DependencyRegistry } from '../../../src/';
+import { DependencyRegistry, InvalidArgumentError, RegistryScope } from '../../../src/';
 import { LoggerAdapter } from '../../../src/configuration/logger/logger.adapter';
 
 describe('DependencyRegistry', () => {
   describe('constructor', () => {
-    test('should register the default dependencies', () => {
+    test('should register the default instances', () => {
       const dependencyRegistry = new DependencyRegistry([]);
 
-      expect(dependencyRegistry.container.resolve('Logger')).toBeInstanceOf(LoggerAdapter);
+      expect(dependencyRegistry.resolve('Logger')).toBeInstanceOf(LoggerAdapter);
+    });
+
+    test('should not register the default instances', () => {
+      const dependencyRegistry = new DependencyRegistry([], { loggerDisabled: true });
+
+      expect(() => dependencyRegistry.resolve('Logger')).toThrow(
+        'Attempted to resolve unregistered dependency token: "Logger"'
+      );
     });
 
     test('should register the dependencies passed as arguments', () => {
@@ -14,15 +22,11 @@ describe('DependencyRegistry', () => {
       class TestB {}
 
       function registerCustomDependenciesTypeA(this: DependencyRegistry): void {
-        this.container.register('TestA', {
-          useValue: new TestA()
-        });
+        this.register('TestA', new TestA(), RegistryScope.TRANSIENT_NON_SINGLETON);
       }
 
       function registerCustomDependenciesTypeB(this: DependencyRegistry): void {
-        this.container.register('TestB', {
-          useValue: new TestB()
-        });
+        this.register('TestB', new TestA(), RegistryScope.SINGLETON);
       }
 
       const dependencyRegistry = new DependencyRegistry([
@@ -30,31 +34,29 @@ describe('DependencyRegistry', () => {
         registerCustomDependenciesTypeB
       ]);
 
-      expect(dependencyRegistry.container.resolve('Logger')).toBeInstanceOf(LoggerAdapter);
-      expect(dependencyRegistry.container.resolve('TestA')).toBeInstanceOf(TestA);
-      expect(dependencyRegistry.container.resolve('TestB')).toBeInstanceOf(TestB);
+      expect(dependencyRegistry.resolve('Logger')).toBeInstanceOf(LoggerAdapter);
+      expect(dependencyRegistry.resolve('TestA')).toBeInstanceOf(TestA);
+      expect(dependencyRegistry.resolve('TestB')).toBeInstanceOf(TestB);
     });
   });
 
   describe('resolve', () => {
     test('should resolve the correct dependency from the token', () => {
       class TestA {}
-
       function registerCustomDependenciesTypeA(this: DependencyRegistry): void {
-        this.container.register('TestA', {
-          useValue: new TestA()
-        });
+        this.register('TestA', new TestA(), RegistryScope.TRANSIENT_NON_SINGLETON);
       }
       const dependencyRegistry = new DependencyRegistry([registerCustomDependenciesTypeA]);
-
       expect(dependencyRegistry.resolve('TestA')).toBeInstanceOf(TestA);
     });
   });
 
-  describe('registerInstanceCache', () => {
-    const dependencyRegistry = new DependencyRegistry([]);
+  describe('register', () => {
+    let dependencyRegistry: DependencyRegistry;
 
-    class SingletonClass {
+    const totalResolvingClass = [1, 2, 3, 4, 5];
+
+    class ExampleClass {
       private counter = 0;
       private calls = 0;
 
@@ -73,24 +75,55 @@ describe('DependencyRegistry', () => {
       }
     }
 
-    dependencyRegistry.registerInstanceCache('SingletonClass', new SingletonClass());
+    beforeAll(() => {
+      dependencyRegistry = new DependencyRegistry([]);
 
-    test.each([1, 2, 3, 4, 5])(
-      'should register dependency as a singleton correctly when called for the %s times',
-      (times) => {
-        const instance = dependencyRegistry.resolve<SingletonClass>('SingletonClass');
+      dependencyRegistry.register('TransientClass', new ExampleClass(), RegistryScope.TRANSIENT_NON_SINGLETON);
+      dependencyRegistry.register('SingletonClass', new ExampleClass(), RegistryScope.SINGLETON);
+    });
 
+    describe.each(totalResolvingClass)('when the registered dependency is resolved for the %s times', (times) => {
+      //
+      const transientClass = dependencyRegistry?.resolve<ExampleClass>('TransientClass');
+      const singletonClass = dependencyRegistry?.resolve<ExampleClass>('SingletonClass');
+
+      /**
+       *  GIVEN a TRANSIENT_NON_SINGLETON class,
+       *  AND in the ExampleClass constructor the counter is incremented,
+       */
+      test('should resolve A NEW instance when scope is TRANSIENT_NON_SINGLETON', () => {
         /**
-         * Every time a instance is created the count is incremented.
-         * As a singleton class, the counter should always be 1
+         * THEN, getCounter() should always be 1, (constructor is called once when create a instance)
          */
-        expect(instance.getCounter()).toEqual(1);
+        expect(transientClass.getCounter()).toEqual(1);
+      });
+
+      /**
+       *  GIVEN a SingletonClass instance resolved,
+       *  AND in the ExampleClass constructor the counter is incremented,
+       */
+      test('should resolve the SAME FIRST instance registered when scope is SINGLETON', () => {
         /**
-         * When getCounter() is called, the calls is registered by increment the calls field
-         * As a singleton class, getCounterCalls() should always return the total of getCounter() calls
+         * THEN, getCounter() should always be 1, (constructor is called once when create a instance)
          */
-        expect(instance.getCounterCalls()).toEqual(times);
-      }
-    );
+        expect(singletonClass.getCounter()).toEqual(1);
+        /**
+         * AND, getCounterCalls() should always be equal to the times that ExampleClass.getCounter() is called.
+         *      - when ExampleClass.getCounter() is called, the private field ExampleClass.calls is incremented
+         *      - and ExampleClass.getCounterCalls() is called, the private field ExampleClass.calls is returned
+         */
+        expect(singletonClass.getCounterCalls()).toEqual(times);
+      });
+    });
+
+    test('should throw error when scope is not available', () => {
+      const registerNoScopeClass = () => {
+        return dependencyRegistry.register('NoScope', new ExampleClass(), 'ANY' as RegistryScope);
+      };
+
+      expect(registerNoScopeClass).toThrow(
+        new InvalidArgumentError('the scope ANY received is not available to be registered.')
+      );
+    });
   });
 });

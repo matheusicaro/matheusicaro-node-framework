@@ -1,9 +1,15 @@
 import 'reflect-metadata';
 
 import { container, InjectionToken, instanceCachingFactory } from 'tsyringe';
-import { registerConfigs } from './config-registries';
+import { registerConfigs, DisableDefaultInstances } from './config-registries';
+import { InvalidArgumentError } from '../../errors';
 
 type DependencyRegistryArgs = (this: DependencyRegistry) => void;
+
+export enum RegistryScope {
+  SINGLETON = 'SINGLETON',
+  TRANSIENT_NON_SINGLETON = 'TRANSIENT'
+}
 
 /**
  * This class is the default Dependency Registry from @mi-node-framework, which uses tsyringe for now.
@@ -13,13 +19,14 @@ type DependencyRegistryArgs = (this: DependencyRegistry) => void;
  * @matheusicaro
  */
 class DependencyRegistry {
-  public container = container;
+  private container = container;
 
-  constructor(registers: DependencyRegistryArgs[]) {
+  constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
+    console.log(disableDefaultInstances);
     /**
      * registerConfigs defines the default dependencies available in this project @mi-node-framework
      **/
-    registerConfigs.call(this);
+    registerConfigs.call(this, disableDefaultInstances);
 
     for (const register of registers) {
       register.call(this);
@@ -30,6 +37,29 @@ class DependencyRegistry {
     return this.container.resolve(token);
   }
 
+  register<T>(token: InjectionToken<T>, providerInstance: T, scope: RegistryScope): void {
+    switch (scope) {
+      case RegistryScope.SINGLETON:
+        this.registerInstanceCache(token, providerInstance);
+        return;
+
+      case RegistryScope.TRANSIENT_NON_SINGLETON:
+        this.container.register(token, { useValue: providerInstance });
+        return;
+
+      default:
+        throw new InvalidArgumentError(`the scope ${scope} received is not available to be registered.`);
+    }
+  }
+
+  /**
+   * Return the container from Tsyringe
+   * ref: https://github.com/microsoft/tsyringe?tab=readme-ov-file#container
+   */
+  getContainer() {
+    return this.container;
+  }
+
   /**
    * Register a single instance by instanceCachingFactory
    *
@@ -38,7 +68,7 @@ class DependencyRegistry {
    * @param token: tag that's identity the instance registered
    * @param providerInstance: the provider instance, exe: registerInstanceCache(token, new ProviderInstance())
    **/
-  registerInstanceCache<T>(token: string, providerInstance: T): void {
+  private registerInstanceCache<T>(token: InjectionToken<T>, providerInstance: T): void {
     this.container.register(token, {
       useFactory: instanceCachingFactory<T>((_container) => providerInstance)
     });

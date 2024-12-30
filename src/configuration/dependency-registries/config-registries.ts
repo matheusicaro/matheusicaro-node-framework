@@ -1,24 +1,23 @@
-import { instanceCachingFactory } from 'tsyringe';
-import { DependencyRegistry } from './dependency-registry';
+import { DependencyRegistry, RegistryScope } from './dependency-registry';
 import { DependencyInjectionTokens } from './tokens';
 import { LoggerAdapter } from '../logger/logger.adapter';
 
-function registerConfigs(this: DependencyRegistry): void {
+export interface DisableDefaultInstances {
+  loggerDisabled: boolean;
+}
+
+function registerConfigs(this: DependencyRegistry, disableDefaultInstances?: DisableDefaultInstances): void {
   /**
    * Registering useful instances
    *  Ref: https://github.com/microsoft/tsyringe#dependency-injection
    *
    * @matheusicaro
    */
-  this.container.register(DependencyInjectionTokens.Logger, {
-    /**
-     * Registering logger instance as a singleton
-     *  Ref: https://github.com/microsoft/tsyringe?tab=readme-ov-file#instancecachingfactory
-     *
-     * @matheusicaro
-     */
-    useFactory: instanceCachingFactory(() => new LoggerAdapter())
-  });
+
+  if (!disableDefaultInstances?.loggerDisabled) {
+    console.log('====> passed here', disableDefaultInstances?.loggerDisabled);
+    this.register(DependencyInjectionTokens.Logger, new LoggerAdapter(), RegistryScope.SINGLETON);
+  }
 }
 
 export { registerConfigs };
