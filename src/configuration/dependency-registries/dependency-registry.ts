@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { container, InjectionToken } from 'tsyringe';
+import { container, InjectionToken, instanceCachingFactory } from 'tsyringe';
 import { registerConfigs } from './config-registries';
 
 type DependencyRegistryArgs = (this: DependencyRegistry) => void;
@@ -28,6 +28,20 @@ class DependencyRegistry {
 
   resolve<T>(token: InjectionToken<T>): T {
     return this.container.resolve(token);
+  }
+
+  /**
+   * Register a single instance by instanceCachingFactory
+   *
+   * ref: https://github.com/microsoft/tsyringe?tab=readme-ov-file#instancecachingfactory
+   *
+   * @param token: tag that's identity the instance registered
+   * @param providerInstance: the provider instance, exe: registerInstanceCache(token, new ProviderInstance())
+   **/
+  registerInstanceCache<T>(token: string, providerInstance: T): void {
+    this.container.register(token, {
+      useFactory: instanceCachingFactory<T>((_container) => providerInstance)
+    });
   }
 }
 
