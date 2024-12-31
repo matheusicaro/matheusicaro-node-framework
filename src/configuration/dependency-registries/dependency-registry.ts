@@ -19,7 +19,10 @@ export enum RegistryScope {
  * @matheusicaro
  */
 class DependencyRegistry {
-  private container = container;
+  /**
+   * @deprecated this reference will be removed soon, use getContainer() instead
+   */
+  public container = container;
 
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
     /**
