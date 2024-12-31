@@ -22,7 +22,7 @@ class DependencyRegistry {
   /**
    * @deprecated this reference will be removed soon, use getContainer() instead
    */
-  public container = container;
+  public container = container; // TODO: make this private in the release 2.0.0, cause it is a break changes
 
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
     /**
