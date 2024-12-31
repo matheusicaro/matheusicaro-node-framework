@@ -64,13 +64,13 @@ How to use it:
 
 ```typescript
 function registerProviders(this: DependencyRegistry): void {
-  this.container.register(ProviderTokens.MyProvider, {
-    useValue: new MyProvider()
-  });
+  //
+  this.register(RegistryScope.SINGLETON, ProviderTokens.MyProvider, new MyProvider());
 }
 
 export { registerProviders };
 ```
+- check the avaialbe scopes in [RegistryScope](https://github.com/matheusicaro/matheusicaro-node-framework/blob/03c25f8d346c7c6171b7cf9defd1279b388bb3f3/src/configuration/dependency-registries/dependency-registry.ts#L9-L18).
 </details>
 
 <details><summary>2. Start your registry</summary>
