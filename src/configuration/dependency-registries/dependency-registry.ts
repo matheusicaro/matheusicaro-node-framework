@@ -22,7 +22,6 @@ class DependencyRegistry {
   private container = container;
 
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
-    console.log(disableDefaultInstances);
     /**
      * registerConfigs defines the default dependencies available in this project @mi-node-framework
      **/

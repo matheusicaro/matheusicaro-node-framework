@@ -1,15 +1,23 @@
-import { DependencyRegistry, InvalidArgumentError, RegistryScope } from '../../../src/';
+import { container, DependencyRegistry, InvalidArgumentError, RegistryScope } from '../../../src/';
 import { LoggerAdapter } from '../../../src/configuration/logger/logger.adapter';
 
 describe('DependencyRegistry', () => {
+  const resetContainer = () => {
+    container.reset();
+  };
+
+  beforeEach(resetContainer);
+
   describe('constructor', () => {
+    beforeEach(resetContainer);
+
     test('should register the default instances', () => {
       const dependencyRegistry = new DependencyRegistry([]);
 
       expect(dependencyRegistry.resolve('Logger')).toBeInstanceOf(LoggerAdapter);
     });
 
-    test('should not register the default instances', () => {
+    test('should not register the default instances when they are disabled', () => {
       const dependencyRegistry = new DependencyRegistry([], { loggerDisabled: true });
 
       expect(() => dependencyRegistry.resolve('Logger')).toThrow(
@@ -26,7 +34,7 @@ describe('DependencyRegistry', () => {
       }
 
       function registerCustomDependenciesTypeB(this: DependencyRegistry): void {
-        this.register('TestB', new TestA(), RegistryScope.SINGLETON);
+        this.register('TestB', new TestB(), RegistryScope.SINGLETON);
       }
 
       const dependencyRegistry = new DependencyRegistry([
@@ -41,6 +49,8 @@ describe('DependencyRegistry', () => {
   });
 
   describe('resolve', () => {
+    beforeEach(resetContainer);
+
     test('should resolve the correct dependency from the token', () => {
       class TestA {}
       function registerCustomDependenciesTypeA(this: DependencyRegistry): void {
@@ -52,8 +62,6 @@ describe('DependencyRegistry', () => {
   });
 
   describe('register', () => {
-    let dependencyRegistry: DependencyRegistry;
-
     const totalResolvingClass = [1, 2, 3, 4, 5];
 
     class ExampleClass {
@@ -75,17 +83,15 @@ describe('DependencyRegistry', () => {
       }
     }
 
-    beforeAll(() => {
-      dependencyRegistry = new DependencyRegistry([]);
+    const dependencyRegistry = new DependencyRegistry([]);
 
-      dependencyRegistry.register('TransientClass', new ExampleClass(), RegistryScope.TRANSIENT_NON_SINGLETON);
-      dependencyRegistry.register('SingletonClass', new ExampleClass(), RegistryScope.SINGLETON);
-    });
+    dependencyRegistry.register('TransientClass', new ExampleClass(), RegistryScope.TRANSIENT_NON_SINGLETON);
+    dependencyRegistry.register('SingletonClass', new ExampleClass(), RegistryScope.SINGLETON);
 
     describe.each(totalResolvingClass)('when the registered dependency is resolved for the %s times', (times) => {
       //
-      const transientClass = dependencyRegistry?.resolve<ExampleClass>('TransientClass');
-      const singletonClass = dependencyRegistry?.resolve<ExampleClass>('SingletonClass');
+      const transientClass = dependencyRegistry.resolve<ExampleClass>('TransientClass');
+      const singletonClass = dependencyRegistry.resolve<ExampleClass>('SingletonClass');
 
       /**
        *  GIVEN a TRANSIENT_NON_SINGLETON class,
