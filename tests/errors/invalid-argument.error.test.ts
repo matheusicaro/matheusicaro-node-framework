@@ -10,8 +10,6 @@ describe('InvalidArgumentError', () => {
     test('should set the default fields correctly when only message is passed', () => {
       const error = new InvalidArgumentError('error');
 
-      console.log(error.name);
-
       expect(error.message).toEqual('error');
       expect(error.code).toEqual(ErrorCode.INVALID_ARGUMENT);
       expect(error.isErrorBase).toEqual(true);
