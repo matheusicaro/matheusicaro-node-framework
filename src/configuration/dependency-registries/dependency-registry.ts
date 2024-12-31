@@ -7,7 +7,13 @@ import { InvalidArgumentError } from '../../errors';
 type DependencyRegistryArgs = (this: DependencyRegistry) => void;
 
 export enum RegistryScope {
+  /**
+   * Scope for singleton instances - same instance every time it is resolved
+   */
   SINGLETON = 'SINGLETON',
+  /**
+   * Scope for transient instances - a new instance every time it is resolved
+   */
   TRANSIENT_NON_SINGLETON = 'TRANSIENT'
 }
 
