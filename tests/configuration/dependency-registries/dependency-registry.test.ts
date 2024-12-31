@@ -30,11 +30,11 @@ describe('DependencyRegistry', () => {
       class TestB {}
 
       function registerCustomDependenciesTypeA(this: DependencyRegistry): void {
-        this.register('TestA', new TestA(), RegistryScope.TRANSIENT_NON_SINGLETON);
+        this.register(RegistryScope.TRANSIENT_NON_SINGLETON, 'TestA', new TestA());
       }
 
       function registerCustomDependenciesTypeB(this: DependencyRegistry): void {
-        this.register('TestB', new TestB(), RegistryScope.SINGLETON);
+        this.register(RegistryScope.SINGLETON, 'TestB', new TestB());
       }
 
       const dependencyRegistry = new DependencyRegistry([
@@ -54,7 +54,7 @@ describe('DependencyRegistry', () => {
     test('should resolve the correct dependency from the token', () => {
       class TestA {}
       function registerCustomDependenciesTypeA(this: DependencyRegistry): void {
-        this.register('TestA', new TestA(), RegistryScope.TRANSIENT_NON_SINGLETON);
+        this.register(RegistryScope.TRANSIENT_NON_SINGLETON, 'TestA', new TestA());
       }
       const dependencyRegistry = new DependencyRegistry([registerCustomDependenciesTypeA]);
       expect(dependencyRegistry.resolve('TestA')).toBeInstanceOf(TestA);
@@ -85,8 +85,8 @@ describe('DependencyRegistry', () => {
 
     const dependencyRegistry = new DependencyRegistry([]);
 
-    dependencyRegistry.register('TransientClass', new ExampleClass(), RegistryScope.TRANSIENT_NON_SINGLETON);
-    dependencyRegistry.register('SingletonClass', new ExampleClass(), RegistryScope.SINGLETON);
+    dependencyRegistry.register(RegistryScope.TRANSIENT_NON_SINGLETON, 'TransientClass', new ExampleClass());
+    dependencyRegistry.register(RegistryScope.SINGLETON, 'SingletonClass', new ExampleClass());
 
     describe.each(totalResolvingClass)('when the registered dependency is resolved for the %s times', (times) => {
       //
@@ -124,7 +124,7 @@ describe('DependencyRegistry', () => {
 
     test('should throw error when scope is not available', () => {
       const registerNoScopeClass = () => {
-        return dependencyRegistry.register('NoScope', new ExampleClass(), 'ANY' as RegistryScope);
+        return dependencyRegistry.register('ANY' as RegistryScope, 'NoScope', new ExampleClass());
       };
 
       expect(registerNoScopeClass).toThrow(

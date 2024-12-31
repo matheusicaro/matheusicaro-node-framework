@@ -15,7 +15,7 @@ function registerConfigs(this: DependencyRegistry, disableDefaultInstances?: Dis
    */
 
   if (!disableDefaultInstances?.loggerDisabled) {
-    this.register(DependencyInjectionTokens.Logger, new LoggerAdapter(), RegistryScope.SINGLETON);
+    this.register(RegistryScope.SINGLETON, DependencyInjectionTokens.Logger, new LoggerAdapter());
   }
 }
 

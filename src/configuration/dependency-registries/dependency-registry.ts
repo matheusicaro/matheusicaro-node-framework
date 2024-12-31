@@ -39,7 +39,7 @@ class DependencyRegistry {
     return this.container.resolve(token);
   }
 
-  register<T>(token: InjectionToken<T>, providerInstance: T, scope: RegistryScope): void {
+  register<T>(scope: RegistryScope, token: InjectionToken<T>, providerInstance: T): void {
     switch (scope) {
       case RegistryScope.SINGLETON:
         this.registerInstanceCache(token, providerInstance);
