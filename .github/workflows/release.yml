@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Version or publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint, test, and build
+        run: |
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Create release pull request or publish to npm
+        # v2.1.2 pinned by commit SHA — see https://github.com/changesets/action/releases/tag/v2.1.2
+        uses: changesets/action@66d7d1ddafddf1ef45f98ee51a7496f9cdadb2f4
+        with:
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -31,6 +31,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Require a changeset for src changes
+        if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')
+        run: npx changeset status --since=origin/${{ github.base_ref }}
+
       - name: Test with coverage
         run: npm test -- --coverage
 
