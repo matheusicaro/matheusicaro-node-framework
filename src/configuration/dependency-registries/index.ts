@@ -1,4 +1,4 @@
-export * from 'tsyringe';
+export type { InjectionToken } from 'tsyringe';
 export * from './dependency-registry';
 export * from './tokens';
 export * from './decorators';

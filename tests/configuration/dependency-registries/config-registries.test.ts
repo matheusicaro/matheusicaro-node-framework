@@ -1,4 +1,5 @@
-import { container, DependencyRegistry } from '../../../src/';
+import { container } from 'tsyringe';
+import { DependencyRegistry } from '../../../src/';
 import { LoggerAdapter } from '../../../src/configuration/logger/logger.adapter';
 
 describe('registerConfigs', () => {
