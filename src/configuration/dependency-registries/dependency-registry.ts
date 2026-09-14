@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { container, InjectionToken, instanceCachingFactory } from 'tsyringe';
-import { registerConfigs, DisableDefaultInstances } from './config-registries';
+import { registerConfigs, getDefaultInstances, DisableDefaultInstances, DefaultInstances } from './config-registries';
 import { InvalidArgumentError } from '../../errors';
 
 type DependencyRegistryArgs = (this: DependencyRegistry) => void;
@@ -66,6 +66,22 @@ class DependencyRegistry {
    */
   getContainer() {
     return this.container;
+  }
+
+  /**
+   * Return the framework's default instances (e.g. the logger), already typed and resolved.
+   * An instance is absent from the returned object when it was disabled via
+   * DisableDefaultInstances at construction time.
+   *
+   * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#getdefaultinstances
+   *
+   * @example
+   * ```
+   *  const { logger } = dependencyRegistry.getDefaultInstances();
+   * ```
+   */
+  getDefaultInstances(): DefaultInstances {
+    return getDefaultInstances.call(this);
   }
 
   /**
