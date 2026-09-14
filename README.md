@@ -62,15 +62,21 @@ How to use it:
 
 <details><summary>1. Create your registers:</summary>
 
+`MyProviderTokens` below is a token enum you define yourself (like `DependencyInjectionTokens`, but for your own providers):
+
 ```typescript
-function registerProviders(this: DependencyRegistry): void {
-  //
-  this.register(RegistryScope.SINGLETON, ProviderTokens.MyProvider, new MyProvider());
+enum MyProviderTokens {
+  MyProvider = 'MyProvider'
 }
 
-export { registerProviders };
+function registerProviders(this: DependencyRegistry): void {
+  //
+  this.register(RegistryScope.SINGLETON, MyProviderTokens.MyProvider, new MyProvider());
+}
+
+export { MyProviderTokens, registerProviders };
 ```
-- check the avaialbe scopes in [RegistryScope](https://github.com/matheusicaro/matheusicaro-node-framework/blob/03c25f8d346c7c6171b7cf9defd1279b388bb3f3/src/configuration/dependency-registries/dependency-registry.ts#L9-L18).
+- check the avaialbe scopes in [RegistryScope](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/configuration/dependency-registries/dependency-registry.ts#L9-L18).
 </details>
 
 <details><summary>2. Start your registry</summary>
@@ -101,7 +107,7 @@ import { inject } from 'matheusicaro-node-framework';
 
 class MyController {
   constructor(
-    @inject(ProviderTokens.MyProvider)
+    @inject(MyProviderTokens.MyProvider)
     private myProvider: MyProviderPort
   ) {}
 
@@ -117,7 +123,7 @@ export { MyController };
 // tests layer
 
 describe('MyController', () => {
-  const provider = getDependencyRegistryInstance().resolve(ProviderTokens.MyProvider);
+  const provider = getDependencyRegistryInstance().resolve(MyProviderTokens.MyProvider);
 
   //...
 });
@@ -155,7 +161,7 @@ class MyController {
 <details><summary>2. by resolving the instance</summary>
 
 ```typescript
-  const logger = getDependencyRegistryInstance().resolve(ProviderTokens.MyProvider)
+  const logger = getDependencyRegistryInstance().resolve(DependencyInjectionTokens.Logger)
 
   logger.info(message)
   logger.info(message, { id: "...", status: "..." })
@@ -198,17 +204,19 @@ The controller base is an abstract class with some useful resources to use, like
 
 ### RestControllerBase
 
-[RestControllerBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/193fe58233f359c4212c986e9e03bef023d5f88c/src/controllers/rest-controller-base.ts#L22) is the a base controller to be used in rest implementations, recommended [express](https://github.com/expressjs/express).
+[RestControllerBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L22) is the a base controller to be used in rest implementations, recommended [express](https://github.com/expressjs/express).
+
+Since [2.0.0](https://github.com/matheusicaro/matheusicaro-node-framework/releases), `RestControllerBase` requires the `DependencyRegistry` instance to be passed explicitly — it no longer resolves it from a hidden global.
 
 <details>
 <summary>How to use it?</summary>
 
 ```typescript
-import { RestControllerBase } from 'matheusicaro-node-framework';
+import { DependencyRegistry, RestControllerBase } from 'matheusicaro-node-framework';
 
 class HealthController extends RestControllerBase {
-  constructor() {
-    super();
+  constructor(registry: DependencyRegistry) {
+    super(registry);
   }
 
   public async getHealth(_req: Request, res: Response): Promise<Response<HealthResponse>> {
@@ -433,28 +441,35 @@ you can implement your own errors from this `ErrorBase`.
 <summary>How to use it?</summary>
 
 ```typescript
-class MyCustomErrorError extends ErrorBase {
+class MyCustomError extends ErrorBase {
   constructor(message: string);
-  constructor(trace: InvalidStateErrorTrace);
-  constructor(message: string, trace?: InvalidStateErrorTrace);
-  constructor(messageOrTrace: string | InvalidStateErrorTrace, _trace?: InvalidStateErrorTrace) {
+  constructor(trace: MyCustomErrorTrace);
+  constructor(message: string, trace?: MyCustomErrorTrace);
+  constructor(messageOrTrace: string | MyCustomErrorTrace, _trace?: MyCustomErrorTrace) {
     const { message, trace } = alignArgs(messageOrTrace, _trace);
+    const { registry, ...traceWithoutRegistry } = trace ?? {};
 
-    super(ErrorCode.INVALID_STATE, InvalidStateError.name, message, {
-      userMessage: trace?.userMessage,
-      originalError: trace?.logData?.error,
-      ...(trace?.logData && {
-        logs: {
-          data: trace?.logData,
-          level: LogLevel.ERROR,
-          instance: container.resolve<LoggerPort>(DependencyInjectionTokens.Logger)
-        }
-      })
+    if (traceWithoutRegistry.logData && !registry) {
+      throw new Error('MyCustomError: trace.registry is required when trace.logData is informed');
+    }
+
+    super(ErrorCode.INVALID_STATE, MyCustomError.name, message, {
+      userMessage: traceWithoutRegistry.userMessage,
+      originalError: traceWithoutRegistry.logData?.error,
+      ...(traceWithoutRegistry.logData &&
+        registry && {
+          logs: {
+            data: traceWithoutRegistry.logData,
+            level: LogLevel.ERROR,
+            // registry is your DependencyRegistry instance, passed in trace.registry
+            instance: registry.resolve<LoggerPort>(DependencyInjectionTokens.Logger)
+          }
+        })
     });
   }
 }
 
-export { InvalidStateError };
+export { MyCustomError };
 ```
 </details>
 <br>
@@ -471,7 +486,11 @@ export { InvalidStateError };
     - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidArgumentError('invalid argument', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
+new InvalidArgumentError('invalid argument', {
+  userMessage: 'friendly user message',
+  logData: { traceId: 'id' },
+  registry // a DependencyRegistry instance, required whenever logData is informed
+});
 ```
 - `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
 <br>
@@ -492,7 +511,11 @@ new InvalidArgumentError('invalid argument', { userMessage: 'friendly user messa
   - `new InvalidRequestError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidRequestError('invalid request', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
+new InvalidRequestError('invalid request', {
+  userMessage: 'friendly user message',
+  logData: { traceId: 'id' },
+  registry // a DependencyRegistry instance, required whenever logData is informed
+});
 ```
 - `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
 <br>
@@ -513,7 +536,11 @@ new InvalidRequestError('invalid request', { userMessage: 'friendly user message
   - `new InvalidStateError(message, trace)` => do log message and trace fields
 
 ```typescript
-new InvalidStateError('invalid state found', { userMessage: 'friendly user message', logData: { traceId: 'id' } });
+new InvalidStateError('invalid state found', {
+  userMessage: 'friendly user message',
+  logData: { traceId: 'id' },
+  registry // a DependencyRegistry instance, required whenever logData is informed
+});
 ```
 
 - `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
@@ -531,11 +558,15 @@ new InvalidStateError('invalid state found', { userMessage: 'friendly user messa
 
 - surface to the user as an unknown error once there is nothing the user can do at this point to fix the request.
 - Log automatically the error & "trace" field when it is present in the args
-  - `new InvalidStateError(message)` => do not error & message
-  - `new InvalidStateError(message, trace)` => do log message and trace fields
+  - `new NotFoundError(message)` => do not error & message
+  - `new NotFoundError(message, trace)` => do log message and trace fields
 
 ```typescript
-new NotFoundError('doc was not found', { userMessage: 'friendly user message', logData: { docId: 'id' } });
+new NotFoundError('doc was not found', {
+  userMessage: 'friendly user message',
+  logData: { docId: 'id' },
+  registry // a DependencyRegistry instance, required whenever logData is informed
+});
 ```
 
 - `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
