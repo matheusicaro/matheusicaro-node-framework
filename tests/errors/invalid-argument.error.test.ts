@@ -50,5 +50,11 @@ describe('InvalidArgumentError', () => {
         throw error;
       }).toThrow(InvalidArgumentError);
     });
+
+    test('should throw when message is not informed', () => {
+      expect(() => new InvalidArgumentError(undefined as unknown as string)).toThrow(
+        'The message error for InvalidArgumentError cannot be undefined'
+      );
+    });
   });
 });

@@ -36,5 +36,11 @@ describe('InvalidRequestError', () => {
     });
 
     test('should call supper with the correct args', () => {});
+
+    test('should throw when message is not informed', () => {
+      expect(() => new InvalidRequestError(undefined as unknown as string)).toThrow(
+        'The message error for InvalidRequestError cannot be undefined'
+      );
+    });
   });
 });
