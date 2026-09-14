@@ -1,10 +1,12 @@
-import { ErrorCode, NotFoundError } from '../../src/errors';
+import { container } from 'tsyringe';
 
-/**
- * TODO: implement tests for NotFoundError
- *     - issue: https://github.com/matheusicaro/mi-node-framework/issues/3
- */
+import { DependencyRegistry, ErrorCode, NotFoundError } from '../../src';
+
 describe('NotFoundError', () => {
+  beforeEach(() => {
+    container.reset();
+  });
+
   describe('constructor', () => {
     test('should set the default fields correctly when only message is passed', () => {
       const error = new NotFoundError('error');
@@ -34,6 +36,25 @@ describe('NotFoundError', () => {
       expect(error.stack).not.toBeUndefined();
     });
 
-    test('should call supper with the correct args', () => {});
+    test('should default the message when no message is passed', () => {
+      const error = new NotFoundError({ userMessage: 'user message' });
+
+      expect(error.message).toEqual('Not found');
+    });
+
+    test('should log via the registry when logData and registry are both passed', () => {
+      const registry = new DependencyRegistry([]);
+
+      const error = new NotFoundError('error', { logData: { foo: 'bar' }, registry });
+
+      expect(error.logData).toEqual({ foo: 'bar' });
+      expect(error.logLevel).toEqual('ERROR');
+    });
+
+    test('should throw when logData is passed without a registry', () => {
+      expect(() => new NotFoundError('error', { logData: { foo: 'bar' } })).toThrow(
+        'NotFoundError: trace.registry is required when trace.logData is informed'
+      );
+    });
   });
 });

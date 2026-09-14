@@ -1,11 +1,14 @@
+import { container } from 'tsyringe';
+
 import { ErrorCode } from '../../src/errors/error-base';
 import { InvalidRequestError } from '../../src/errors/invalid-request.error';
+import { DependencyRegistry } from '../../src';
 
-/**
- * TODO: implement tests for InvalidRequestError
- *     - issue: https://github.com/matheusicaro/mi-node-framework/issues/3
- */
 describe('InvalidRequestError', () => {
+  beforeEach(() => {
+    container.reset();
+  });
+
   describe('constructor', () => {
     test('should set the default fields correctly when only message is passed', () => {
       const error = new InvalidRequestError('error');
@@ -35,11 +38,24 @@ describe('InvalidRequestError', () => {
       expect(error.stack).not.toBeUndefined();
     });
 
-    test('should call supper with the correct args', () => {});
-
     test('should throw when message is not informed', () => {
       expect(() => new InvalidRequestError(undefined as unknown as string)).toThrow(
         'The message error for InvalidRequestError cannot be undefined'
+      );
+    });
+
+    test('should log via the registry when logData and registry are both passed', () => {
+      const registry = new DependencyRegistry([]);
+
+      const error = new InvalidRequestError('error', { logData: { foo: 'bar' }, registry });
+
+      expect(error.logData).toEqual({ foo: 'bar' });
+      expect(error.logLevel).toEqual('ERROR');
+    });
+
+    test('should throw when logData is passed without a registry', () => {
+      expect(() => new InvalidRequestError('error', { logData: { foo: 'bar' } })).toThrow(
+        'InvalidRequestError: trace.registry is required when trace.logData is informed'
       );
     });
   });
