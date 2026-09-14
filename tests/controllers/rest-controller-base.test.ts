@@ -123,10 +123,14 @@ describe('RestControllerBase', () => {
       test('should not log when the error is an ErrorBase, since ErrorBase logs on construction', () => {
         const controller = new TestController();
         const response = buildResponse();
-        const error = new InvalidStateError('boom');
+        const error = new InvalidStateError('boom', { logData: { foo: 'bar' } });
+
+        expect(logger.exception).toHaveBeenCalledTimes(1);
+        jest.clearAllMocks();
 
         controller.handleError({ error, response });
 
+        expect(logger.exception).not.toHaveBeenCalled();
         expect(logger.error).not.toHaveBeenCalled();
       });
 

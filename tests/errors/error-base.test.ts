@@ -76,10 +76,11 @@ describe('ErrorBase', () => {
           expect(logInstance.exception).toHaveBeenCalledWith(error);
         });
 
-        test('should not call log instance exception when trace.logs is not informed', () => {
+        test('should construct successfully without a logs field and leave logLevel/logData unset', () => {
           const error = new TestError('error message');
 
-          expect(error).toBeInstanceOf(TestError);
+          expect(error.logLevel).toBeUndefined();
+          expect(error.logData).toBeUndefined();
         });
       });
     });
@@ -89,7 +90,11 @@ describe('ErrorBase', () => {
     test('should print the error instance correctly', () => {
       const error = new TestError('error message');
 
-      expect(error.toString()).toEqual(JSON.stringify(error));
+      expect(JSON.parse(error.toString())).toEqual({
+        code: ErrorCode.INVALID_STATE,
+        name: 'TestError',
+        isErrorBase: true
+      });
     });
   });
 
