@@ -1,118 +1,233 @@
-# @mi-node-framework (matheusicaro)
+# matheusicaro-node-framework
 
-This framework is a pack of @matheusicaro custom basic configurations and setups for quickly building services and APIs in [Node.js](https://nodejs.org/en) for short projects like hackathons, studies, challenges, etc.
-A bunch of resources here might be useful for our next project 😃👍
+A small, opinionated TypeScript toolkit for bootstrapping Node.js services — dependency injection, a Winston-backed logger, an Express controller base, structured errors, and testing helpers, in one consistent package.
 
-#### Installing
+[![npm version](https://img.shields.io/npm/v/matheusicaro-node-framework)](https://www.npmjs.com/package/matheusicaro-node-framework)
+[![license](https://img.shields.io/npm/l/matheusicaro-node-framework)](./LICENSE)
+[![CI](https://github.com/matheusicaro/matheusicaro-node-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/matheusicaro/matheusicaro-node-framework/actions/workflows/ci.yml)
 
-[npm package](https://www.npmjs.com/package/matheusicaro-node-framework)
+## Why this exists
 
+I don't want to reinvent the wheel, but I also don't want to reinvent *this* wheel — the same DI setup, logger, error classes, and controller boilerplate — every time I start a new hackathon project, a small API, or a personal side project. This framework exists to accelerate that: one standard I fully control and understand, instead of copy-pasting the same setup file between repos or re-learning a heavier framework's conventions each time.
+
+The trade-off I'm avoiding on both ends: hand-rolling the same DI container and error-handling boilerplate from scratch is wasted time, but pulling in a full framework like NestJS for a weekend project means adopting its opinions, its overhead, and its learning curve for something that doesn't need any of that. This sits in between — thin wrappers around solid libraries (`tsyringe`, `winston`, `express`), not a platform. Nothing here is deeply coupled to this package's own abstractions, so migrating to something more robust later, if a project outgrows it, stays realistic.
+
+It's also a portfolio piece as much as a working tool — a place where my own conventions for DI, logging, and error handling live in one visible, versioned spot. You can read more about my other projects at [matheusicaro.com](https://matheusicaro.com).
+
+## Installation
+
+```bash
+npm install matheusicaro-node-framework
 ```
-npm i matheusicaro-node-framework
-```
-
-#### Local Test
 
 <details>
-<summary>How to test the library locally?</summary>
+<summary>Testing a local build against another project</summary>
 
 <br>
-1. in the library folder `mi-node-framework/`, run:
-```terminal
-npm i
+
+1. In this repo, build and link the package:
+
+```bash
+npm install
 npm run build
 npm link
 ```
 
-2. in the your project folder:
-```terminal
+2. In your project:
+
+```bash
 npm uninstall matheusicaro-node-framework
 npm link matheusicaro-node-framework
 ```
+
 </details>
 
-# Resources
+## Contents
 
-- [Resources](#resources)
-  - [Dependency Injection](#dependency-injection)
-  - [Logger](#logger)
-  - [Controller Base](#controller-base)
-    - [RestControllerBase](#restcontrollerbase)
-  - [Testing](#testing)
-    - [Factory](#factory)
-    - [Jest Stub](#jeststub)
-    - [Vitest Stub](#viteststub)
-    - [DeepStubObject](#deepstubobject)
-  - [Errors](#errors)
-    - [ErrorBase](#errorbase)
-    - [InvalidArgumentError](#invalidargumenterror)
-    - [InvalidRequestError](#invalidrequesterror)
-    - [InvalidStateError](#invalidstateerror)
-    - [NotFoundError](#notfounderror)
+- [Quick start](#quick-start)
+- [Dependency Injection](#dependency-injection)
+- [Logger](#logger)
+- [RestControllerBase](#restcontrollerbase)
+- [Errors](#errors)
+  - [ErrorBase](#errorbase)
+  - [InvalidArgumentError](#invalidargumenterror)
+  - [InvalidRequestError](#invalidrequesterror)
+  - [InvalidStateError](#invalidstateerror)
+  - [NotFoundError](#notfounderror)
+- [Testing utilities](#testing-utilities)
+  - [Factory](#factory)
+  - [jestStub](#jeststub)
+  - [vitestStub](#viteststub)
+  - [DeepStubObject](#deepstubobject)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
+
+## Quick start
+
+A minimal end-to-end example: register a provider, wire it into a controller, and handle an error with logging.
+
+```typescript
+// tokens.ts
+enum AppProviderTokens {
+  UserProvider = 'UserProvider'
+}
+
+export { AppProviderTokens };
+```
+
+```typescript
+// registry.ts
+import { DependencyRegistry, RegistryScope } from 'matheusicaro-node-framework';
+import { AppProviderTokens } from './tokens';
+import { UserProvider } from './user-provider';
+
+function registerProviders(this: DependencyRegistry): void {
+  this.register(RegistryScope.SINGLETON, AppProviderTokens.UserProvider, new UserProvider());
+}
+
+let dependencyRegistry: DependencyRegistry;
+
+function getDependencyRegistryInstance(): DependencyRegistry {
+  if (!dependencyRegistry) {
+    dependencyRegistry = new DependencyRegistry([registerProviders]);
+  }
+
+  return dependencyRegistry;
+}
+
+export { getDependencyRegistryInstance };
+```
+
+```typescript
+// user-controller.ts
+import { Request, Response } from 'express';
+import {
+  DependencyRegistry,
+  RestControllerBase,
+  NotFoundError,
+  inject
+} from 'matheusicaro-node-framework';
+import { AppProviderTokens } from './tokens';
+import { UserProvider } from './user-provider';
+
+class UserController extends RestControllerBase {
+  constructor(
+    registry: DependencyRegistry,
+    @inject(AppProviderTokens.UserProvider) private userProvider: UserProvider
+  ) {
+    super(registry);
+    this.registry = registry;
+  }
+
+  private registry: DependencyRegistry;
+
+  public async getUser(req: Request, res: Response): Promise<Response> {
+    try {
+      const user = await this.userProvider.findById(req.params.id);
+
+      if (!user) {
+        throw new NotFoundError('user not found', {
+          userMessage: 'No user with that id exists',
+          logData: { userId: req.params.id },
+          registry: this.registry
+        });
+      }
+
+      this.logger.info('user found', { userId: user.id });
+
+      return res.status(200).json(user);
+    } catch (error) {
+      return this.handleErrorThenRespondFailedOnRequest({
+        error,
+        response: res,
+        setStatusCodeByErrorType: true
+      });
+    }
+  }
+}
+
+export { UserController };
+```
+
+```typescript
+// app.ts
+import { getDependencyRegistryInstance } from './registry';
+import { UserController } from './user-controller';
+
+const registry = getDependencyRegistryInstance();
+const userController = registry.resolve(UserController);
+```
+
+`NotFoundError` sets `userMessage` on the response automatically (via `handleErrorThenRespondFailedOnRequest`), and logs `logData` through the registry's logger since `registry` was passed alongside it. Omit `logData`/`registry` entirely for an error that doesn't need to log anything: `new NotFoundError('user not found')`.
 
 ## Dependency Injection
 
-An abstraction class for an injection container for TypeScript using [TSyring](https://github.com/microsoft/tsyringe).
+`DependencyRegistry` is a small abstraction over [tsyringe](https://github.com/microsoft/tsyringe). It exists so consumers depend on this framework's contract, not directly on tsyringe — if the underlying provider ever changes, only this package needs to change.
 
-This abstraction allows me to use dependency injection in a contract defined in this framework without knowing the main provider (TSyring in [v1.0.0](https://github.com/matheusicaro/matheusicaro-node-framework/releases/tag/1.0.0)).
+<details>
+<summary>1. Define your own provider tokens and registration function</summary>
 
-If we decide to use another dependency injection provider, it will be easier for me to implement it here and update the following services with the new @mi-node-framework version.
-
-How to use it:
-
-<details><summary>1. Create your registers:</summary>
-
-`MyProviderTokens` below is a token enum you define yourself (like `DependencyInjectionTokens`, but for your own providers):
+`AppProviderTokens` below is a token enum you define yourself — the framework only ships its own internal token (`DependencyInjectionTokens.Logger`), not a shared enum for your providers.
 
 ```typescript
-enum MyProviderTokens {
+import { DependencyRegistry, RegistryScope } from 'matheusicaro-node-framework';
+
+enum AppProviderTokens {
   MyProvider = 'MyProvider'
 }
 
 function registerProviders(this: DependencyRegistry): void {
-  //
-  this.register(RegistryScope.SINGLETON, MyProviderTokens.MyProvider, new MyProvider());
+  this.register(RegistryScope.SINGLETON, AppProviderTokens.MyProvider, new MyProvider());
 }
 
-export { MyProviderTokens, registerProviders };
+export { AppProviderTokens, registerProviders };
 ```
-- check the avaialbe scopes in [RegistryScope](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/configuration/dependency-registries/dependency-registry.ts#L9-L18).
+
+Available scopes ([`RegistryScope`](./src/configuration/dependency-registries/dependency-registry.ts)):
+
+- `RegistryScope.SINGLETON` — the same instance every time it's resolved.
+- `RegistryScope.TRANSIENT_NON_SINGLETON` — a new registration each time (no instance caching).
+
 </details>
 
-<details><summary>2. Start your registry</summary>
+<details>
+<summary>2. Create your registry instance</summary>
 
 ```typescript
 import { DependencyRegistry } from 'matheusicaro-node-framework';
+import { registerProviders } from './registry-providers';
 
 let dependencyRegistry: DependencyRegistry;
 
-const getDependencyRegistryInstance = (): DependencyRegistry => {
+function getDependencyRegistryInstance(): DependencyRegistry {
   if (!dependencyRegistry) {
-    dependencyRegistry = new DependencyRegistry([ registerProviders, ...and others]);
+    dependencyRegistry = new DependencyRegistry([registerProviders]);
   }
 
   return dependencyRegistry;
-};
+}
 
 export { getDependencyRegistryInstance };
 ```
+
+The constructor also accepts an optional second argument, `DisableDefaultInstances` (currently `{ loggerDisabled: boolean }`), to opt out of the framework's own default registrations (e.g. the default logger) if you want to register your own under the same token.
+
 </details>
 
-<details><summary>3. Injecting it</summary>
+<details>
+<summary>3. Inject and resolve</summary>
 
 ```typescript
 // application layer
-
 import { inject } from 'matheusicaro-node-framework';
+import { AppProviderTokens } from './tokens';
 
 class MyController {
-  constructor(
-    @inject(MyProviderTokens.MyProvider)
-    private myProvider: MyProviderPort
-  ) {}
+  constructor(@inject(AppProviderTokens.MyProvider) private myProvider: MyProviderPort) {}
 
   public handler(): Promise<void> {
-    this.myProvider.run();
+    return this.myProvider.run();
   }
 }
 
@@ -120,98 +235,119 @@ export { MyController };
 ```
 
 ```typescript
-// tests layer
-
+// tests
 describe('MyController', () => {
-  const provider = getDependencyRegistryInstance().resolve(MyProviderTokens.MyProvider);
+  const provider = getDependencyRegistryInstance().resolve(AppProviderTokens.MyProvider);
 
-  //...
+  // ...
 });
 ```
+
+`inject`/`singleton` are re-exported from this package's own `decorators` module (backed by tsyringe under the hood) — you don't import them from `tsyringe` directly. The framework re-exports only the `InjectionToken` type from `tsyringe` itself, since it's needed for `register`/`resolve`'s generic signatures.
+
 </details>
 
-<br>
-<br>
+<details>
+<summary>getDefaultInstances()</summary>
+
+Returns the framework's own currently-registered default instances, already resolved and typed — today, just the logger:
+
+```typescript
+const { logger } = getDependencyRegistryInstance().getDefaultInstances();
+
+logger?.info('using the default logger directly');
+```
+
+An entry is absent from the returned object if it was turned off via `DisableDefaultInstances` at construction time (e.g. `{ loggerDisabled: true }` means `logger` is `undefined`).
+
+</details>
 
 ## Logger
 
-This is a custom logger already setup with [winston](https://github.com/winstonjs/winston#readme).
-The logger will be printed in the files app console
+A `LoggerPort`-shaped logger backed by [winston](https://github.com/winstonjs/winston), registered by default under `DependencyInjectionTokens.Logger`.
 
-How to use it:
-
-<details><summary>1. by constructor injection</summary>
+<details>
+<summary>1. By constructor injection</summary>
 
 ```typescript
-import { DependencyInjectionTokens } from 'matheusicaro-node-framework';
+import { inject, DependencyInjectionTokens, LoggerPort } from 'matheusicaro-node-framework';
 
 class MyController {
-  constructor(
-    @inject(DependencyInjectionTokens.Logger)
-    private logger: LoggerPort
-  ) {}
+  constructor(@inject(DependencyInjectionTokens.Logger) private logger: LoggerPort) {}
 
-  public handler(): Promise<void> {
+  public handler(): void {
     this.logger.info('trace handler');
   }
 }
 ```
+
 </details>
 
-<details><summary>2. by resolving the instance</summary>
+<details>
+<summary>2. By resolving the instance</summary>
 
 ```typescript
-  const logger = getDependencyRegistryInstance().resolve(DependencyInjectionTokens.Logger)
+import { DependencyInjectionTokens, LoggerPort } from 'matheusicaro-node-framework';
 
-  logger.info(message)
-  logger.info(message, { id: "...", status: "..." })
+const logger = getDependencyRegistryInstance().resolve<LoggerPort>(DependencyInjectionTokens.Logger);
 
-  logger.error(message)
-  logger.error(message, { id: "...", status: "...", error })
+logger.info('message');
+logger.info('message', { id: '...', status: '...' });
 
-  logger.exception(error): void;
+logger.error({ message: 'message', error, logData: { id: '...' } });
+
+logger.exception(error); // error: ErrorBase
 ```
+
 </details>
 
-<details><summary>Location for the log files</summary>
+<details>
+<summary>Extending LoggerBase</summary>
 
-#### Files location:
+`LoggerBase` (the abstract class backing the default logger) is exported so you can extend it externally — for example to change the underlying winston transport configuration while keeping the same `info`/`error`/`exception` contract.
 
-- file: `logs/exceptions.log`
+```typescript
+import { LoggerBase } from 'matheusicaro-node-framework';
+
+class MyLogger extends LoggerBase {
+  // override or extend as needed
+}
+```
+
+</details>
+
+<details>
+<summary>Log file locations</summary>
+
+- `logs/exceptions.log`
 
 ```
 2024-11-27 14:47:58 [ ERROR ]==> uncaughtException: failed on starting the app Error: failed on starting the app
-    at Timeout._onTimeout (/Users/matheus.icaro/DEVELOPMENT/repositories/test/mi-gateway-service/src/app.ts:41:9)
+    at Timeout._onTimeout (/path/to/app.ts:41:9)
     at listOnTimeout (node:internal/timers:573:17)
     at processTimers (node:internal/timers:514:7)
 ```
 
-- file: `logs/combined.log`
+- `logs/combined.log`
 
 ```
-2024-11-27 14:50:53 [ ERROR ]==> {"message":"failed on starting the app","logData":{"trace_id":"fake_id","originalError":{"message":"its fail","stack":"Error: its fail\n    at Timeout._onTimeout (/Users/matheus.icaro/DEVELOPMENT/repositories/test/mi-gateway-service/src/app.ts:44:11)\n    at listOnTimeout (node:internal/timers:573:17)\n    at processTimers (node:internal/timers:514:7)"}}}
-
+2024-11-27 14:50:53 [ ERROR ]==> {"message":"failed on starting the app","logData":{"trace_id":"fake_id","originalError":{"message":"its fail","stack":"..."}}}
 2024-11-27 14:53:37 [ INFO ]==> {"message":"logging data for trace","logData":{"id":"fake_id"}}
 ```
+
 </details>
 
-<br>
-<br>
+## RestControllerBase
 
-## Controller Base
+[`RestControllerBase`](./src/controllers/rest-controller-base.ts) is an abstract base class for Express REST controllers, with built-in error handling and response helpers.
 
-The controller base is an abstract class with some useful resources to use, like handling errors and responding to the client with a pre-defined payload.
-
-### RestControllerBase
-
-[RestControllerBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L22) is the a base controller to be used in rest implementations, recommended [express](https://github.com/expressjs/express).
-
-Since [2.0.0](https://github.com/matheusicaro/matheusicaro-node-framework/releases), `RestControllerBase` requires the `DependencyRegistry` instance to be passed explicitly — it no longer resolves it from a hidden global.
+Since 2.0.0, `RestControllerBase` requires a `DependencyRegistry` instance passed explicitly to `super(registry)` — it no longer resolves one from a hidden global container.
 
 <details>
-<summary>How to use it?</summary>
+<summary>How to use it</summary>
 
 ```typescript
+import { Request, Response } from 'express';
 import { DependencyRegistry, RestControllerBase } from 'matheusicaro-node-framework';
 
 class HealthController extends RestControllerBase {
@@ -219,17 +355,14 @@ class HealthController extends RestControllerBase {
     super(registry);
   }
 
-  public async getHealth(_req: Request, res: Response): Promise<Response<HealthResponse>> {
+  public async getHealth(_req: Request, res: Response): Promise<Response> {
     try {
       return res.status(200).json({ message: 'success' });
     } catch (error) {
       return this.handleErrorThenRespondFailedOnRequest({
         error,
         response: res,
-        responseData: {
-          status: 'FAILED',
-          time: new Date()
-        }
+        responseData: { status: 'FAILED', time: new Date() }
       });
     }
   }
@@ -237,215 +370,36 @@ class HealthController extends RestControllerBase {
 
 export { HealthController };
 ```
+
+The constructor also accepts two optional arguments after `registry`: a custom failed-request HTTP status code (default `502`) and a custom failed-request response payload (default `{ message: 'error on processing the request' }`).
+
+`handleErrorThenRespondFailedOnRequest({ error, response, responseData?, setStatusCodeByErrorType? })`:
+
+- Logs the error (unless it's already an `ErrorBase`, which self-logs on construction).
+- Responds with the constructor's default status/payload, merging in `responseData` and the error's `userMessage` when present.
+- When `setStatusCodeByErrorType` is `true`, maps `InvalidArgumentError`/`InvalidRequestError` → `400`, `NotFoundError` → `404`, anything else → the configured default (`502` unless overridden).
+
 </details>
-
-<br>
-<br>
-
-## Testing
-
-### Factory
-
-A factory to build objects easier with overrides for their props.
-
-How to use it:
-
-<details>
-<summary>1. create your factory</summary>
-
-- `src/application/domain/entities/my-object.ts`
-```typescript
-// your entity/object
-
-export interface MyObject {
-  id: string;
-  status: 'OPEN' | 'CLOSED' | 'IN_PROGRESS';
-}
-```
-
-- `tests/factories/my-object.factory.ts`:
-```typescript
-// declare any custom function to override specific params and make it easier to build specific objects
-class MyObjectFactory extends Factory<MyObject> {
-  closed() {
-    return this.params({
-      status: 'CLOSED',
-    });
-  }
-
-  open() {
-    return this.params({
-      status: 'OPEN',
-    });
-  }
-}
-
-// return the default object when build it
-const myObjectFactory = MyObjectFactory.define(() => ({
-  id: 'some-id',
-  status: 'IN_PROGRESS',
-}));
-
-export { myObjectFactory };
-```
-</details>
-
-<details>
-<summary>2. Use it in your tests</summary>
-
-```typescript
-    import { myObjectFactory } from '../factories/my-object.factory.ts';
-
-
-    it('should find all closed status', async () => {
-      
-      // build the object in the desired state pre-defined
-      const myObject = myObjectFactory.closed().build();
-
-      stubDatabase.findOne.mockResolvedValueOnce(myObject);
-
-      const result = await provider.findAllClosedStatus();
-
-      expect(result).toEqual([myObject]);
-    });
-
-
-    it('should find by id', async () => {
-
-      //override the build with any value for the fields from your object
-      const myObject = myObjectFactory.build({ id: "any id" });
-
-      stubDatabase.findOne.mockResolvedValueOnce(myObject);
-
-      const result = await provider.findById("any id");
-
-      expect(result).toEqual(myObject);
-    });
-```
-</details>
-<br>
-
-### JestStub
-
-JestStub is a stub using </details>
- (`jest.fn()`) for interface, types and objects. 
-You can easily stub/mock when you are testing.
-
-<details>
-<summary>How to use it?</summary>
-
-```typescript
-  import { jestStub } from 'matheusicaro-node-framework';
-
-  //...
-
-  const stubMyInterface = jestStub<MyInterface>();
-
-  const myClass = new MyClass(stubMyInterface)
-
-  //...
-
-  test('should stub function correctly and set id', async () => {
-    const userId = "id",
-
-    stubMyInterface.anyMethod.mockResolvedValueOnce(100);
-
-    const result = myClass.run(userId)
-
-    expect(result).toEqual(100);
-    expect(stubMyInterface).toHaveBeenCalledTimes(1);
-    expect(stubMyInterface).toHaveBeenCalledWith(userId);
-  });
-```
-</details>
-<br>
-
-### VitestStub
-
-VitestStub is a stub that uses [Vitest](https://vitest.dev/api/vi.html#vi-fn) (`vi.fn()`) for interfaces, types, and objects. 
-You can easily stub/mock when testing with **Vitest**.
-
-<details>
-<summary>How to use it? 👇</summary>
-
-```typescript
-  import { vitestStub } from 'matheusicaro-node-framework';
-
-  //...
-
-  const stubMyInterface = vitestStub<MyInterface>();
-
-  const myClass = new MyClass(stubMyInterface)
-
-  //...
-
-  test('should stub function correctly and set id', async () => {
-    const userId = "id",
-
-    stubMyInterface.anyMethod.mockResolvedValueOnce(100);
-
-    const result = myClass.run(userId)
-
-    expect(result).toEqual(100);
-    expect(stubMyInterface).toHaveBeenCalledTimes(1);
-    expect(stubMyInterface).toHaveBeenCalledWith(userId);
-  });
-```
-</details>
-<br>
-
-### DeepStubObject
-
-DeepStubObject is a deep typer to be used when JestStub or VitesStub don't return the deeper prop.
-
-<details>
-<summary>How to use it? 👇</summary>
-
-```typescript
-  import { jestStub, vitestStub, DeepStubObject } from 'matheusicaro-node-framework';
-
-  //...
-
-  let stubProvider: ProviderInterface & DeepStubObject<ProviderInterface>;
-
-  beforeAll(() => {
-
-    // with jestStub
-    stubProvider = jestStub<ProviderInterface>();
-
-    // with vitestStub
-    stubProvider = vitestStub<ProviderInterface>();
-
-    myClass = new MyClass(stubProvider);
-  });
-
-  test('should stub function correctly and set id', async () => {
-    //...
-    stubMyInterface.anyProp.deepProp.deeperProp.mockResolvedValueOnce(100);
-  });
-```
-</details>
-<br>
-<br>
-
 
 ## Errors
 
-You can use some custom errors in your business logic already implemented from `ErrorBase` which handles with logger and traces.
+Custom error classes built on `ErrorBase`, which integrates logging and trace metadata.
 
-#### [ErrorBase](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/error-base.ts#L35)
+#### ErrorBase
 
-you can implement your own errors from this `ErrorBase`.
+Implement your own errors on top of [`ErrorBase`](./src/errors/error-base.ts):
 
 <details>
-<summary>How to use it?</summary>
+<summary>How to use it</summary>
 
 ```typescript
+import { ErrorBase, ErrorCode, ErrorTrace, LogLevel, LoggerPort, DependencyInjectionTokens, alignArgs } from 'matheusicaro-node-framework';
+
 class MyCustomError extends ErrorBase {
   constructor(message: string);
-  constructor(trace: MyCustomErrorTrace);
-  constructor(message: string, trace?: MyCustomErrorTrace);
-  constructor(messageOrTrace: string | MyCustomErrorTrace, _trace?: MyCustomErrorTrace) {
+  constructor(trace: ErrorTrace);
+  constructor(message: string, trace?: ErrorTrace);
+  constructor(messageOrTrace: string | ErrorTrace, _trace?: ErrorTrace) {
     const { message, trace } = alignArgs(messageOrTrace, _trace);
     const { registry, ...traceWithoutRegistry } = trace ?? {};
 
@@ -453,7 +407,7 @@ class MyCustomError extends ErrorBase {
       throw new Error('MyCustomError: trace.registry is required when trace.logData is informed');
     }
 
-    super(ErrorCode.INVALID_STATE, MyCustomError.name, message, {
+    super(ErrorCode.INVALID_STATE, MyCustomError.name, message ?? 'invalid state', {
       userMessage: traceWithoutRegistry.userMessage,
       originalError: traceWithoutRegistry.logData?.error,
       ...(traceWithoutRegistry.logData &&
@@ -461,7 +415,6 @@ class MyCustomError extends ErrorBase {
           logs: {
             data: traceWithoutRegistry.logData,
             level: LogLevel.ERROR,
-            // registry is your DependencyRegistry instance, passed in trace.registry
             instance: registry.resolve<LoggerPort>(DependencyInjectionTokens.Logger)
           }
         })
@@ -471,19 +424,20 @@ class MyCustomError extends ErrorBase {
 
 export { MyCustomError };
 ```
+
 </details>
-<br>
 
-#### [InvalidArgumentError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-argument.error.ts#L21)
+#### InvalidArgumentError
 
-`InvalidArgumentError` is a type of error recommended to be used when an invalid argument is informed.
+[`InvalidArgumentError`](./src/errors/invalid-argument.error.ts) — use when an invalid argument was supplied. Unlike the other three, the message is required (it throws if omitted).
 
 <details>
-<summary>This error will: 👇</summary>
+<summary>This error will</summary>
 
-  - surface to the user with a known message for the invalid argument.
-  - Log automatically the error & "trace" field when it is present in the args
-    - `new InvalidArgumentError(message)` => do not error & message -` new InvalidArgumentError(message, trace)` => do log message and trace fields
+- Surface `userMessage` to the client when used with `RestControllerBase`.
+- Log the error and trace only when `logData` (and therefore `registry`) is passed:
+  - `new InvalidArgumentError(message)` → no logging.
+  - `new InvalidArgumentError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
 new InvalidArgumentError('invalid argument', {
@@ -492,89 +446,248 @@ new InvalidArgumentError('invalid argument', {
   registry // a DependencyRegistry instance, required whenever logData is informed
 });
 ```
-- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
-<br>
+
 </details>
-<br>
 
+#### InvalidRequestError
 
-#### [InvalidRequestError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-request.error.ts#L21)
-
-`InvalidRequestError` is a type of error recommended to be used when an invalid argument is informed.
+[`InvalidRequestError`](./src/errors/invalid-request.error.ts) — use when an incoming request itself is invalid.
 
 <details>
-<summary>This error will: 👇</summary>
+<summary>This error will</summary>
 
-- surface to the user with a known message for the invalid request.
-- Log automatically the error & "trace" field when it is present in the args
-  - `new InvalidRequestError(message)` => do not error & message
-  - `new InvalidRequestError(message, trace)` => do log message and trace fields
+- Surface `userMessage` to the client when used with `RestControllerBase`.
+- Log the error and trace only when `logData` (and therefore `registry`) is passed:
+  - `new InvalidRequestError(message)` → no logging.
+  - `new InvalidRequestError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
 new InvalidRequestError('invalid request', {
   userMessage: 'friendly user message',
   logData: { traceId: 'id' },
-  registry // a DependencyRegistry instance, required whenever logData is informed
+  registry
 });
 ```
-- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
-<br>
+
 </details>
-<br>
 
-#### [InvalidStateError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/invalid-state.error.ts#L21)
+#### InvalidStateError
 
-`InvalidStateError` is a type of error recommended to be used when an invalid state is found and your app is not able to handle with.
+[`InvalidStateError`](./src/errors/invalid-state.error.ts) — use when the app reaches a state it can't recover from; nothing the user can do about it.
 
 <details>
-<summary>This error will: 👇</summary>
+<summary>This error will</summary>
 
-
-- surface to the user as a default error message (if not informed) once there is nothing the user can do at this point to fix the request
-- Log automatically the error & "trace" field when it is present in the args
-  - `new InvalidStateError(message)` => do not error & message
-  - `new InvalidStateError(message, trace)` => do log message and trace fields
+- Surface a default error message to the client when used with `RestControllerBase` (unless `userMessage` is set).
+- Log the error and trace only when `logData` (and therefore `registry`) is passed:
+  - `new InvalidStateError(message)` → no logging.
+  - `new InvalidStateError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
 new InvalidStateError('invalid state found', {
   userMessage: 'friendly user message',
   logData: { traceId: 'id' },
-  registry // a DependencyRegistry instance, required whenever logData is informed
+  registry
 });
 ```
 
-- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
-<br>
 </details>
-<br>
 
-#### [NotFoundError](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/errors/not-found.error.ts)
+#### NotFoundError
 
-`NotFoundError` is a type of error recommended to be used when a resource is not found.
+[`NotFoundError`](./src/errors/not-found.error.ts) — use when a resource wasn't found. `message` defaults to `'Not found'` if omitted.
 
 <details>
-<summary>This error will: 👇</summary>
+<summary>This error will</summary>
 
-
-- surface to the user as an unknown error once there is nothing the user can do at this point to fix the request.
-- Log automatically the error & "trace" field when it is present in the args
-  - `new NotFoundError(message)` => do not error & message
-  - `new NotFoundError(message, trace)` => do log message and trace fields
+- Surface `userMessage` to the client when used with `RestControllerBase`.
+- Log the error and trace only when `logData` (and therefore `registry`) is passed:
+  - `new NotFoundError(message)` → no logging.
+  - `new NotFoundError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
 new NotFoundError('doc was not found', {
   userMessage: 'friendly user message',
   logData: { docId: 'id' },
-  registry // a DependencyRegistry instance, required whenever logData is informed
+  registry
 });
 ```
 
-- `userMessage` can be sent in the response automatically when using RestControllerBase ([here](https://github.com/matheusicaro/matheusicaro-node-framework/blob/master/src/controllers/rest-controller-base.ts#L68-L76))
-
-<br>
 </details>
-<br>
 
----
+## Testing utilities
 
-<img width="260" src="https://github.com/user-attachments/assets/a18a8fc2-bdec-43f8-a691-cb925efe6361">
+### Factory
+
+A [fishery](https://github.com/thoughtbot/fishery)-based builder for constructing test objects with overridable fields.
+
+<details>
+<summary>1. Create your factory</summary>
+
+```typescript
+// src/application/domain/entities/my-object.ts
+export interface MyObject {
+  id: string;
+  status: 'OPEN' | 'CLOSED' | 'IN_PROGRESS';
+}
+```
+
+```typescript
+// tests/factories/my-object.factory.ts
+import { Factory } from 'matheusicaro-node-framework';
+import { MyObject } from '../../src/application/domain/entities/my-object';
+
+class MyObjectFactory extends Factory<MyObject> {
+  closed() {
+    return this.params({ status: 'CLOSED' });
+  }
+
+  open() {
+    return this.params({ status: 'OPEN' });
+  }
+}
+
+const myObjectFactory = MyObjectFactory.define(() => ({
+  id: 'some-id',
+  status: 'IN_PROGRESS'
+}));
+
+export { myObjectFactory };
+```
+
+</details>
+
+<details>
+<summary>2. Use it in your tests</summary>
+
+```typescript
+import { myObjectFactory } from '../factories/my-object.factory';
+
+it('should find all closed status', async () => {
+  const myObject = myObjectFactory.closed().build();
+
+  stubDatabase.findOne.mockResolvedValueOnce(myObject);
+
+  const result = await provider.findAllClosedStatus();
+
+  expect(result).toEqual([myObject]);
+});
+
+it('should find by id', async () => {
+  const myObject = myObjectFactory.build({ id: 'any id' });
+
+  stubDatabase.findOne.mockResolvedValueOnce(myObject);
+
+  const result = await provider.findById('any id');
+
+  expect(result).toEqual(myObject);
+});
+```
+
+</details>
+
+### jestStub
+
+Auto-stubs any interface/type/object with `jest.fn()`, so every accessed property resolves to a mock function without hand-writing each one.
+
+<details>
+<summary>How to use it</summary>
+
+```typescript
+import { jestStub } from 'matheusicaro-node-framework';
+
+const stubMyInterface = jestStub<MyInterface>();
+const myClass = new MyClass(stubMyInterface);
+
+test('should stub function correctly and set id', async () => {
+  const userId = 'id';
+
+  stubMyInterface.anyMethod.mockResolvedValueOnce(100);
+
+  const result = await myClass.run(userId);
+
+  expect(result).toEqual(100);
+  expect(stubMyInterface.anyMethod).toHaveBeenCalledTimes(1);
+  expect(stubMyInterface.anyMethod).toHaveBeenCalledWith(userId);
+});
+```
+
+</details>
+
+### vitestStub
+
+Same idea as `jestStub`, backed by [Vitest's `vi.fn()`](https://vitest.dev/api/vi.html#vi-fn) instead.
+
+<details>
+<summary>How to use it</summary>
+
+```typescript
+import { vitestStub } from 'matheusicaro-node-framework';
+
+const stubMyInterface = vitestStub<MyInterface>();
+const myClass = new MyClass(stubMyInterface);
+
+test('should stub function correctly and set id', async () => {
+  const userId = 'id';
+
+  stubMyInterface.anyMethod.mockResolvedValueOnce(100);
+
+  const result = await myClass.run(userId);
+
+  expect(result).toEqual(100);
+  expect(stubMyInterface.anyMethod).toHaveBeenCalledTimes(1);
+  expect(stubMyInterface.anyMethod).toHaveBeenCalledWith(userId);
+});
+```
+
+</details>
+
+### DeepStubObject
+
+A type helper for when `jestStub`/`vitestStub` need to reach nested properties, not just the top level.
+
+<details>
+<summary>How to use it</summary>
+
+```typescript
+import { jestStub, vitestStub, DeepStubObject } from 'matheusicaro-node-framework';
+
+let stubProvider: ProviderInterface & DeepStubObject<ProviderInterface>;
+
+beforeAll(() => {
+  // with jestStub
+  stubProvider = jestStub<ProviderInterface>();
+
+  // or with vitestStub
+  stubProvider = vitestStub<ProviderInterface>();
+
+  myClass = new MyClass(stubProvider);
+});
+
+test('should stub a deeply nested property', async () => {
+  stubProvider.anyProp.deepProp.deeperProp.mockResolvedValueOnce(100);
+});
+```
+
+</details>
+
+## Contributing
+
+```bash
+npm install
+npm run lint    # eslint .
+npm test        # jest
+npm run build   # tsup — builds CJS + ESM + .d.ts into dist/
+```
+
+Branch names follow `<issue-number>-<slug>` (e.g. `45-improve-readme-and-narrative`).
+
+This repo uses [changesets](https://github.com/changesets/changesets) for versioning and the changelog. Any PR touching `src/**` needs an accompanying changeset — CI checks for one (`npx changeset status`). Run `npx changeset` and follow the prompts; for a change with no consumer-visible effect, `npx changeset add --empty` satisfies the check without adding a changelog entry.
+
+## License
+
+[MIT](./LICENSE)
+
+## Author
+
+Built by [@matheusicaro](https://github.com/matheusicaro) — more projects at [matheusicaro.com](https://matheusicaro.com).
