@@ -715,6 +715,8 @@ Branch names follow `<issue-number>-<slug>` (e.g. `45-improve-readme-and-narrati
 
 This repo uses [changesets](https://github.com/changesets/changesets) for versioning and the changelog. Any PR touching `src/**` needs an accompanying changeset — CI checks for one (`npx changeset status`). Run `npx changeset` and follow the prompts; for a change with no consumer-visible effect, `npx changeset add --empty` satisfies the check without adding a changelog entry.
 
+`master` is protected — direct pushes are rejected for everyone, including admins. All changes go through a PR with the CI check (`Lint, test, and build`) passing before merge.
+
 ---
 
 ## License
