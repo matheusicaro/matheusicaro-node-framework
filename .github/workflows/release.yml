@@ -37,8 +37,7 @@ jobs:
           npm test
           npm run build
 
-      - name: Create release pull request or publish to npm
-        # v2.1.2 pinned by commit SHA — see https://github.com/changesets/action/releases/tag/v2.1.2
+      - name: Create release pull request or stage npm release
         uses: changesets/action@66d7d1ddafddf1ef45f98ee51a7496f9cdadb2f4
         with:
           title: 'chore: version packages'

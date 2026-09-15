@@ -33,7 +33,7 @@
     "lint": "eslint . ",
     "precommit": "lint-staged",
     "prepare": "sh ./scripts/prepare.sh",
-    "release": "npm run build && changeset publish",
+    "release": "npm run build && npm stage publish",
     "test": "jest"
   },
   "husky": {
