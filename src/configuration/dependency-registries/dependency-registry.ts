@@ -18,9 +18,9 @@ export enum RegistryScope {
 }
 
 /**
- * This class is the default Dependency Registry from @mi-node-framework, which uses tsyringe for now.
+ * This class is the default Dependency Registry from matheusicaro-node-framework, which uses tsyringe for now.
  *
- * How to use: https://github.com/matheusicaro/mi-node-framework#dependency-injection
+ * How to use: https://github.com/matheusicaro/matheusicaro-node-framework#dependency-injection
  *
  * @matheusicaro
  */
@@ -34,7 +34,7 @@ class DependencyRegistry {
 
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
     /**
-     * registerConfigs defines the default dependencies available in this project @mi-node-framework
+     * registerConfigs defines the default dependencies available in this project matheusicaro-node-framework
      **/
     registerConfigs.call(this, disableDefaultInstances);
 
