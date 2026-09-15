@@ -1,7 +1,7 @@
 import { promisify } from 'util';
 
 /**
- * Pause the thread, useful to avoid throughput issues when processing large amounts of data.
+ * Delay execution for a given time, useful to avoid throughput issues when processing large amounts of data.
  *
  * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#sleep
  *

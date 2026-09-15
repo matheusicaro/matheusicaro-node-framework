@@ -56,6 +56,7 @@ npm link matheusicaro-node-framework
 - [Dependency Injection](#dependency-injection)
 - [Logger](#logger)
 - [RestControllerBase](#restcontrollerbase)
+- [Sleep](#sleep)
 - [Errors](#errors)
   - [ErrorBase](#errorbase)
   - [InvalidArgumentError](#invalidargumenterror)
@@ -75,7 +76,7 @@ npm link matheusicaro-node-framework
 
 ## Quick start
 
-A minimal end-to-end example: register a provider, wire it into a controller, and handle an error with logging.
+A minimal end-to-end example: register a provider, wire it into a controller, and handle an error with logging. Note the `registry` field on the error's trace object is a `DependencyRegistry` instance and must be in scope wherever an error with `logData` is constructed (see the [Errors](#errors) section below) — it's not available for free, so a real `getDependencyRegistryInstance()` (or its result passed down, e.g. via a controller's constructor as shown here) needs to be in scope.
 
 ```typescript
 // tokens.ts
@@ -260,7 +261,7 @@ describe('MyController', () => {
 </details>
 
 <details>
-<summary>getDefaultInstances()</summary>
+<summary id="getdefaultinstances">getDefaultInstances()</summary>
 
 Returns the framework's own currently-registered default instances, already resolved and typed — today, just the logger:
 
@@ -359,7 +360,7 @@ On import, the logger's setup module creates a `logs/` directory synchronously (
 
 ## RestControllerBase
 
-[`RestControllerBase`](./src/controllers/rest-controller-base.ts) is an abstract base class for Express REST controllers, with built-in error handling and response helpers.
+[`RestControllerBase`](./src/controllers/rest-controller-base.ts#L33) is an abstract base class for Express REST controllers, with built-in error handling and response helpers.
 
 Since 2.0.0, `RestControllerBase` requires a `DependencyRegistry` instance passed explicitly to `super(registry)` — it no longer resolves one from a hidden global container.
 
@@ -400,6 +401,18 @@ The constructor also accepts two optional arguments after `registry`: a custom f
 - When `setStatusCodeByErrorType` is `true`, maps `InvalidArgumentError`/`InvalidRequestError` → `400`, `NotFoundError` → `404`, anything else → the configured default (`502` unless overridden).
 
 </details>
+
+---
+
+## Sleep
+
+[`sleep`](./src/utils/sleep.ts) delays execution for a given time — useful to avoid throughput issues when processing large amounts of data.
+
+```typescript
+import { sleep } from 'matheusicaro-node-framework';
+
+await sleep(1000); // wait 1 second before continuing
+```
 
 ---
 
@@ -463,6 +476,8 @@ export { MyCustomError };
   - `new InvalidArgumentError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
+const registry = getDependencyRegistryInstance();
+
 new InvalidArgumentError('invalid argument', {
   userMessage: 'friendly user message',
   logData: { traceId: 'id' },
@@ -485,6 +500,8 @@ new InvalidArgumentError('invalid argument', {
   - `new InvalidRequestError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
+const registry = getDependencyRegistryInstance();
+
 new InvalidRequestError('invalid request', {
   userMessage: 'friendly user message',
   logData: { traceId: 'id' },
@@ -507,6 +524,8 @@ new InvalidRequestError('invalid request', {
   - `new InvalidStateError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
+const registry = getDependencyRegistryInstance();
+
 new InvalidStateError('invalid state found', {
   userMessage: 'friendly user message',
   logData: { traceId: 'id' },
@@ -529,6 +548,8 @@ new InvalidStateError('invalid state found', {
   - `new NotFoundError(message, trace)` → logs `message` and `trace.logData`.
 
 ```typescript
+const registry = getDependencyRegistryInstance();
+
 new NotFoundError('doc was not found', {
   userMessage: 'friendly user message',
   logData: { docId: 'id' },
