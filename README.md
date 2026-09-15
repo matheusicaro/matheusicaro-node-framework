@@ -14,6 +14,8 @@ The trade-off I'm avoiding on both ends: hand-rolling the same DI container and 
 
 It's also a portfolio piece as much as a working tool — a place where my own conventions for DI, logging, and error handling live in one visible, versioned spot. You can read more about my other projects at [matheusicaro.com](https://matheusicaro.com).
 
+---
+
 ## Installation
 
 ```bash
@@ -42,6 +44,8 @@ npm link matheusicaro-node-framework
 
 </details>
 
+---
+
 ## Contents
 
 - [Quick start](#quick-start)
@@ -62,6 +66,8 @@ npm link matheusicaro-node-framework
 - [Contributing](#contributing)
 - [License](#license)
 - [Author](#author)
+
+---
 
 ## Quick start
 
@@ -161,6 +167,8 @@ const userController = registry.resolve(UserController);
 
 `NotFoundError` sets `userMessage` on the response automatically (via `handleErrorThenRespondFailedOnRequest`), and logs `logData` through the registry's logger since `registry` was passed alongside it. Omit `logData`/`registry` entirely for an error that doesn't need to log anything: `new NotFoundError('user not found')`.
 
+---
+
 ## Dependency Injection
 
 `DependencyRegistry` is a small abstraction over [tsyringe](https://github.com/microsoft/tsyringe). It exists so consumers depend on this framework's contract, not directly on tsyringe — if the underlying provider ever changes, only this package needs to change.
@@ -243,7 +251,7 @@ describe('MyController', () => {
 });
 ```
 
-`inject`/`singleton` are re-exported from this package's own `decorators` module (backed by tsyringe under the hood) — you don't import them from `tsyringe` directly. The framework re-exports only the `InjectionToken` type from `tsyringe` itself, since it's needed for `register`/`resolve`'s generic signatures.
+`inject`/`singleton` are re-exported as-is from `tsyringe` via this package's own `decorators` module — you don't import them from `tsyringe` directly. The framework also re-exports the `InjectionToken` type from `tsyringe` itself, since it's needed for `register`/`resolve`'s generic signatures.
 
 </details>
 
@@ -261,6 +269,10 @@ logger?.info('using the default logger directly');
 An entry is absent from the returned object if it was turned off via `DisableDefaultInstances` at construction time (e.g. `{ loggerDisabled: true }` means `logger` is `undefined`).
 
 </details>
+
+`DependencyRegistry` also exposes `getContainer()`, which returns the underlying tsyringe container directly — useful for tsyringe APIs this wrapper doesn't cover. The `container` public field does the same thing but is deprecated; prefer `getContainer()`.
+
+---
 
 ## Logger
 
@@ -337,6 +349,8 @@ class MyLogger extends LoggerBase {
 
 </details>
 
+---
+
 ## RestControllerBase
 
 [`RestControllerBase`](./src/controllers/rest-controller-base.ts) is an abstract base class for Express REST controllers, with built-in error handling and response helpers.
@@ -381,6 +395,8 @@ The constructor also accepts two optional arguments after `registry`: a custom f
 
 </details>
 
+---
+
 ## Errors
 
 Custom error classes built on `ErrorBase`, which integrates logging and trace metadata.
@@ -393,6 +409,7 @@ Implement your own errors on top of [`ErrorBase`](./src/errors/error-base.ts):
 <summary>How to use it</summary>
 
 ```typescript
+// This is a standalone example, not a copy of InvalidStateError's real defaults.
 import { ErrorBase, ErrorCode, ErrorTrace, LogLevel, LoggerPort, DependencyInjectionTokens, alignArgs } from 'matheusicaro-node-framework';
 
 class MyCustomError extends ErrorBase {
@@ -514,6 +531,8 @@ new NotFoundError('doc was not found', {
 ```
 
 </details>
+
+---
 
 ## Testing utilities
 
@@ -671,6 +690,8 @@ test('should stub a deeply nested property', async () => {
 
 </details>
 
+---
+
 ## Contributing
 
 ```bash
@@ -684,9 +705,13 @@ Branch names follow `<issue-number>-<slug>` (e.g. `45-improve-readme-and-narrati
 
 This repo uses [changesets](https://github.com/changesets/changesets) for versioning and the changelog. Any PR touching `src/**` needs an accompanying changeset — CI checks for one (`npx changeset status`). Run `npx changeset` and follow the prompts; for a change with no consumer-visible effect, `npx changeset add --empty` satisfies the check without adding a changelog entry.
 
+---
+
 ## License
 
 [MIT](./LICENSE)
+
+---
 
 ## Author
 
