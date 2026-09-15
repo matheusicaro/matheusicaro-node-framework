@@ -1,4 +1,5 @@
-import { container, DependencyRegistry, InvalidArgumentError, RegistryScope } from '../../../src/';
+import { container } from 'tsyringe';
+import { DependencyRegistry, InvalidArgumentError, RegistryScope } from '../../../src/';
 import { LoggerAdapter } from '../../../src/configuration/logger/logger.adapter';
 
 describe('DependencyRegistry', () => {

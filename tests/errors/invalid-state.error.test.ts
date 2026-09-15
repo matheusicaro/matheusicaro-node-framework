@@ -1,10 +1,12 @@
-import { ErrorCode, InvalidStateError } from '../../src/errors';
+import { container } from 'tsyringe';
 
-/**
- * TODO: implement tests for InvalidStateError
- *     - issue: https://github.com/matheusicaro/mi-node-framework/issues/3
- */
+import { DependencyRegistry, ErrorCode, InvalidStateError } from '../../src';
+
 describe('InvalidStateError', () => {
+  beforeEach(() => {
+    container.reset();
+  });
+
   describe('constructor', () => {
     test('should set the default fields correctly when only message is passed', () => {
       const error = new InvalidStateError('error');
@@ -34,6 +36,25 @@ describe('InvalidStateError', () => {
       expect(error.stack).not.toBeUndefined();
     });
 
-    test('should call supper with the correct args', () => {});
+    test('should default the message when no message is passed', () => {
+      const error = new InvalidStateError({ userMessage: 'user message' });
+
+      expect(error.message).toEqual('Invalid state found during service request');
+    });
+
+    test('should log via the registry when logData and registry are both passed', () => {
+      const registry = new DependencyRegistry([]);
+
+      const error = new InvalidStateError('error', { logData: { foo: 'bar' }, registry });
+
+      expect(error.logData).toEqual({ foo: 'bar' });
+      expect(error.logLevel).toEqual('ERROR');
+    });
+
+    test('should throw when logData is passed without a registry', () => {
+      expect(() => new InvalidStateError('error', { logData: { foo: 'bar' } })).toThrow(
+        'InvalidStateError: trace.registry is required when trace.logData is informed'
+      );
+    });
   });
 });

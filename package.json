@@ -4,13 +4,16 @@
   "description": "My custom basic configuration setups for a quick build of services and APIs for Node.",
   "author": "@matheusicaro",
   "license": "MIT",
-  "homepage": "https://github.com/matheusicaro/mi-node-framework#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://github.com/matheusicaro/matheusicaro-node-framework#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/matheusicaro/mi-node-framework.git"
+    "url": "git+https://github.com/matheusicaro/matheusicaro-node-framework.git"
   },
   "bugs": {
-    "url": "https://github.com/matheusicaro/mi-node-framework/issues"
+    "url": "https://github.com/matheusicaro/matheusicaro-node-framework/issues"
   },
   "keywords": [
     "Node",
@@ -36,11 +39,6 @@
     "release": "npm run build && npm stage publish",
     "test": "jest"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run prettier-format && npm run lint && npm run test"
-    }
-  },
   "lint-staged": {
     "*.ts": [
       "prettier --write",
@@ -57,13 +55,15 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.29.7",
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "^9.15.0",
-    "@faker-js/faker": "^9.3.0",
+    "@faker-js/faker": "^10.6.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.16.0",
+    "babel-jest": "^29.7.0",
     "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.9.0",

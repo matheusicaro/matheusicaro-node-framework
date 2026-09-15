@@ -3,18 +3,20 @@ import { Response } from 'express';
 
 import {
   DependencyInjectionTokens,
+  DependencyRegistry,
   ErrorBase,
   InvalidArgumentError,
   InvalidRequestError,
   InvalidStateError,
   LoggerPort,
   NotFoundError,
+  RegistryScope,
   RestControllerBase
 } from '../../src';
 
 class TestController extends RestControllerBase {
-  constructor(customStatusCode?: number, customPayload?: { message: string }) {
-    super(customStatusCode, customPayload);
+  constructor(registry: DependencyRegistry, customStatusCode?: number, customPayload?: { message: string }) {
+    super(registry, customStatusCode, customPayload);
   }
 
   public handleError(input: {
@@ -34,6 +36,8 @@ describe('RestControllerBase', () => {
     exception: jest.fn()
   };
 
+  let registry: DependencyRegistry;
+
   const buildResponse = (): Response => {
     const response = {} as Response;
     response.status = jest.fn().mockReturnValue(response);
@@ -44,12 +48,13 @@ describe('RestControllerBase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     container.reset();
-    container.register(DependencyInjectionTokens.Logger, { useValue: logger });
+    registry = new DependencyRegistry([], { loggerDisabled: true });
+    registry.register(RegistryScope.SINGLETON, DependencyInjectionTokens.Logger, logger);
   });
 
   describe('handleErrorThenRespondFailedOnRequest', () => {
     test('should respond with the default status code and payload when no custom values are informed', () => {
-      const controller = new TestController();
+      const controller = new TestController(registry);
       const response = buildResponse();
 
       controller.handleError({ error: new Error('boom'), response });
@@ -59,7 +64,7 @@ describe('RestControllerBase', () => {
     });
 
     test('should respond with the custom status code and payload when informed', () => {
-      const controller = new TestController(418, { message: 'custom message' });
+      const controller = new TestController(registry, 418, { message: 'custom message' });
       const response = buildResponse();
 
       controller.handleError({ error: new Error('boom'), response });
@@ -69,7 +74,7 @@ describe('RestControllerBase', () => {
     });
 
     test('should merge the responseData into the response payload', () => {
-      const controller = new TestController();
+      const controller = new TestController(registry);
       const response = buildResponse();
 
       controller.handleError({ error: new Error('boom'), response, responseData: { extra: 'data' } });
@@ -81,7 +86,7 @@ describe('RestControllerBase', () => {
     });
 
     test('should include the userMessage in the payload when the error is an ErrorBase with userMessage', () => {
-      const controller = new TestController();
+      const controller = new TestController(registry);
       const response = buildResponse();
       const error = new InvalidStateError('boom', { userMessage: 'a user message' });
 
@@ -99,7 +104,7 @@ describe('RestControllerBase', () => {
         [InvalidRequestError, 400],
         [NotFoundError, 404]
       ])('should set the status code by the %s type', (ErrorClass, statusCode) => {
-        const controller = new TestController();
+        const controller = new TestController(registry);
         const response = buildResponse();
         const error = new (ErrorClass as new (message: string) => ErrorBase)('boom');
 
@@ -109,7 +114,7 @@ describe('RestControllerBase', () => {
       });
 
       test('should fall back to the default status code for an unmapped error type', () => {
-        const controller = new TestController();
+        const controller = new TestController(registry);
         const response = buildResponse();
         const error = new InvalidStateError('boom');
 
@@ -121,9 +126,9 @@ describe('RestControllerBase', () => {
 
     describe('logging', () => {
       test('should not log when the error is an ErrorBase, since ErrorBase logs on construction', () => {
-        const controller = new TestController();
+        const controller = new TestController(registry);
         const response = buildResponse();
-        const error = new InvalidStateError('boom', { logData: { foo: 'bar' } });
+        const error = new InvalidStateError('boom', { logData: { foo: 'bar' }, registry });
 
         expect(logger.exception).toHaveBeenCalledTimes(1);
         jest.clearAllMocks();
@@ -135,7 +140,7 @@ describe('RestControllerBase', () => {
       });
 
       test('should log the error message when the error is a plain Error', () => {
-        const controller = new TestController();
+        const controller = new TestController(registry);
         const response = buildResponse();
         const error = new Error('boom');
 
@@ -148,7 +153,7 @@ describe('RestControllerBase', () => {
       });
 
       test('should log an unknown error message when the error is not an Error instance', () => {
-        const controller = new TestController();
+        const controller = new TestController(registry);
         const response = buildResponse();
 
         controller.handleError({ error: 'not an error', response });

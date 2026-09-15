@@ -1,5 +1,5 @@
 /**
- * Tokens for the available registered dependencies in @mi-node-framework
+ * Tokens for the available registered dependencies in matheusicaro-node-framework
  *
  * @matheusicaro
  */

@@ -6,6 +6,9 @@ import pluginJest from 'eslint-plugin-jest';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
+    // Note: a directory-level ignore here can't be re-included by a later negated
+    // pattern in the same array (ESLint flat-config limitation), so `dist` is
+    // fully excluded from linting rather than partially un-ignoring dist/index.js.
     ignores: ['dist']
   },
   { files: ['**/*.{js,mjs,cjs,ts}', 'test/**'], ...pluginJest.configs['flat/recommended'] },

@@ -1,8 +1,8 @@
-import { container } from 'tsyringe';
 import { NextFunction, Request, Response } from 'express';
 
 import {
   DependencyInjectionTokens,
+  DependencyRegistry,
   LoggerPort,
   ErrorBase,
   InvalidArgumentError,
@@ -27,7 +27,7 @@ const NOT_FOUND_STATUS_CODE = 404;
  * RestControllerBase is a base for controller implementations for HTTP REST requests
  *  - MyController extends RestControllerBase
  *
- * How to use: https://github.com/matheusicaro/mi-node-framework#rest-controller-base
+ * How to use: https://github.com/matheusicaro/matheusicaro-node-framework/tree/master?tab=readme-ov-file#restcontrollerbase
  *
  */
 abstract class RestControllerBase {
@@ -36,10 +36,11 @@ abstract class RestControllerBase {
   protected failedRequestPayload;
 
   constructor(
+    registry: DependencyRegistry,
     customFailedRequestStatusCode = BAD_GATEWAY_STATUS_CODE,
     customFailedRequestPayload = { message: 'error on processing the request' }
   ) {
-    this.logger = container.resolve(DependencyInjectionTokens.Logger);
+    this.logger = registry.resolve<LoggerPort>(DependencyInjectionTokens.Logger);
 
     this.failedRequestStatusCode = customFailedRequestStatusCode;
     this.failedRequestPayload = customFailedRequestPayload;

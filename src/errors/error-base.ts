@@ -1,10 +1,15 @@
 import { LogData, LoggerPort, LogLevel } from '../';
+import type { DependencyRegistry } from '../configuration/dependency-registries';
 
 export interface ErrorTrace {
   userMessage?: string;
   logData?: LogData & {
     error?: Error;
   };
+  /**
+   * Required when logData is informed — the registry the logger is resolved from.
+   */
+  registry?: DependencyRegistry;
 }
 
 export interface ErrorTraceImplement {

@@ -1,5 +1,7 @@
 ---
-"matheusicaro-node-framework": minor
+"matheusicaro-node-framework": major
 ---
 
-Adopt changesets for changelog generation, version bumps, and staged npm publishing. Every PR that changes `src/**` now needs an accompanying changeset (`npx changeset`), enforced by CI. Merging to `master` opens/updates a "Version Packages" PR; merging that PR bumps the version, updates `CHANGELOG.md`, and stages the release on npm — a maintainer still has to approve it with 2FA on npmjs.com before it's actually published.
+**Breaking:** `RestControllerBase` and the built-in error classes (`InvalidArgumentError`, `InvalidRequestError`, `InvalidStateError`, `NotFoundError`) no longer resolve the logger from a hidden global container — they now require an explicit `DependencyRegistry` instance. `RestControllerBase` subclasses must pass it to `super(registry)`; error classes only need it in the trace object when `logData` is also passed (`new SomeError('msg', { logData, registry })`). See `CHANGELOG.md` for the full migration guide.
+
+Also in this release: `LoggerBase` is now exported for external use, a `sleep` utility was added, `import 'reflect-metadata'` was added to the entry point (fixes a tsyringe polyfill crash), `DependencyRegistry.getDefaultInstances()` was added, the package no longer re-exports the entirety of `tsyringe`, and this repo adopted changesets for changelog/version/release automation going forward.

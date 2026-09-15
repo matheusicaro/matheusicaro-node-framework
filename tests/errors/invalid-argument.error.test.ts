@@ -1,11 +1,13 @@
-import { ErrorCode } from '../../src/errors';
+import { container } from 'tsyringe';
+
+import { DependencyRegistry, ErrorCode } from '../../src';
 import { InvalidArgumentError } from '../../src/errors/invalid-argument.error';
 
-/**
- * TODO: implement tests for InvalidArgumentError
- *     - issue: https://github.com/matheusicaro/mi-node-framework/issues/3
- */
 describe('InvalidArgumentError', () => {
+  beforeEach(() => {
+    container.reset();
+  });
+
   describe('constructor', () => {
     test('should set the default fields correctly when only message is passed', () => {
       const error = new InvalidArgumentError('error');
@@ -35,8 +37,6 @@ describe('InvalidArgumentError', () => {
       expect(error.stack).not.toBeUndefined();
     });
 
-    test('should call supper with the correct args', () => {});
-
     test('should create the error correctly only with message', () => {
       const error = new InvalidArgumentError('error');
 
@@ -54,6 +54,21 @@ describe('InvalidArgumentError', () => {
     test('should throw when message is not informed', () => {
       expect(() => new InvalidArgumentError(undefined as unknown as string)).toThrow(
         'The message error for InvalidArgumentError cannot be undefined'
+      );
+    });
+
+    test('should log via the registry when logData and registry are both passed', () => {
+      const registry = new DependencyRegistry([]);
+
+      const error = new InvalidArgumentError('error', { logData: { foo: 'bar' }, registry });
+
+      expect(error.logData).toEqual({ foo: 'bar' });
+      expect(error.logLevel).toEqual('ERROR');
+    });
+
+    test('should throw when logData is passed without a registry', () => {
+      expect(() => new InvalidArgumentError('error', { logData: { foo: 'bar' } })).toThrow(
+        'InvalidArgumentError: trace.registry is required when trace.logData is informed'
       );
     });
   });
