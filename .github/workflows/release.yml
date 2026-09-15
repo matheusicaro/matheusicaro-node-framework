@@ -40,9 +40,9 @@ jobs:
       - name: Create release pull request or stage npm release
         uses: changesets/action@66d7d1ddafddf1ef45f98ee51a7496f9cdadb2f4
         with:
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
-          publish: npm run release
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
+          publish-script: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
