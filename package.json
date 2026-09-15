@@ -33,6 +33,7 @@
     "lint": "eslint . ",
     "precommit": "lint-staged",
     "prepare": "sh ./scripts/prepare.sh",
+    "release": "npm run build && npm stage publish",
     "test": "jest"
   },
   "lint-staged": {
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.29.7",
+    "@changesets/cli": "^3.0.3",
     "@eslint/js": "^9.15.0",
     "@faker-js/faker": "^10.6.0",
     "@types/express": "^5.0.0",
