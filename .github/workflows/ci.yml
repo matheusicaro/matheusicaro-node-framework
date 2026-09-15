@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -30,6 +32,10 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Require a changeset for src changes
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'github-actions[bot]'
+        run: npx changeset status --since=origin/${{ github.base_ref }}
 
       - name: Test with coverage
         run: npm test -- --coverage
