@@ -18,8 +18,11 @@ for more info.
 ## When do I add changesets?
 
 Add a changeset any time your PR changes behavior in a way consumers should
-know about — a feature, a bug fix, a breaking change. Skip it for internal
-refactors, test-only changes, or documentation-only PRs.
+know about — a feature, a bug fix, a breaking change. CI requires a
+changeset on any PR with a source change, so if you're doing a pure
+internal refactor with no consumer-visible effect, use
+`npx changeset add --empty` to satisfy the check without adding a
+changelog entry.
 
 ## What do I do if I need to release with a major version?
 
@@ -27,3 +30,16 @@ If you wish to update the major version of your package, you need to add a
 `major` changeset. See
 [the versioning documentation](https://github.com/changesets/changesets/blob/main/docs/versioning-models.md)
 for more information.
+
+## After approving a staged release on npmjs.com
+
+Publishing here uses a stage-only npm token, so `npm stage publish` in CI
+does not create a git tag the way `changeset publish` normally would.
+Once you've approved a staged release with 2FA on npmjs.com, tag it
+yourself so the git history and the published version stay in sync:
+
+```
+git checkout master && git pull
+git tag v$(node -p "require('./package.json').version")
+git push --tags
+```
