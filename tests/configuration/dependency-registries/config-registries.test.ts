@@ -55,4 +55,12 @@ describe('getDefaultInstances', () => {
 
     expect(defaults.logger).toBe(resolved);
   });
+
+  test('should not leak the logger across instances sharing the tsyringe container', () => {
+    const withLogger = new DependencyRegistry([]);
+    const withoutLogger = new DependencyRegistry([], { loggerDisabled: true });
+
+    expect(withLogger.getDefaultInstances().logger).toBeInstanceOf(LoggerAdapter);
+    expect(withoutLogger.getDefaultInstances().logger).toBeUndefined();
+  });
 });

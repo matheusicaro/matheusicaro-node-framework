@@ -26,7 +26,10 @@ function registerConfigs(this: DependencyRegistry, disableDefaultInstances?: Dis
    * @matheusicaro
    */
 
-  if (!disableDefaultInstances?.loggerDisabled) {
+  // Tracked per-instance since tsyringe's container is a shared singleton.
+  this.loggerDisabled = Boolean(disableDefaultInstances?.loggerDisabled);
+
+  if (!this.loggerDisabled) {
     this.register(RegistryScope.SINGLETON, DependencyInjectionTokens.Logger, new LoggerAdapter());
   }
 }
@@ -34,7 +37,7 @@ function registerConfigs(this: DependencyRegistry, disableDefaultInstances?: Dis
 function getDefaultInstances(this: DependencyRegistry): DefaultInstances {
   const instances: DefaultInstances = {};
 
-  if (this.getContainer().isRegistered(DependencyInjectionTokens.Logger)) {
+  if (!this.loggerDisabled && this.getContainer().isRegistered(DependencyInjectionTokens.Logger)) {
     instances.logger = this.resolve<LoggerPort>(DependencyInjectionTokens.Logger);
   }
 

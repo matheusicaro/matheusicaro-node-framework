@@ -32,6 +32,9 @@ class DependencyRegistry {
   // Prefer getContainer() for new code; this field stays for backwards compatibility.
   public container = container;
 
+  /** Whether this instance disabled the default logger. */
+  public loggerDisabled = false;
+
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
     /**
      * registerConfigs defines the default dependencies available in this project matheusicaro-node-framework
