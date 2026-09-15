@@ -28,7 +28,9 @@ class DependencyRegistry {
   /**
    * @deprecated this reference will be removed soon, use getContainer() instead
    */
-  public container = container; // TODO: make this private in the release 2.0.0, cause it is a break changes
+  // Known wart: kept public (not made private) to avoid an additional breaking change.
+  // Prefer getContainer() for new code; this field stays for backwards compatibility.
+  public container = container;
 
   constructor(registers: DependencyRegistryArgs[], disableDefaultInstances?: DisableDefaultInstances) {
     /**

@@ -14,6 +14,8 @@ The trade-off I'm avoiding on both ends: hand-rolling the same DI container and 
 
 It's also a portfolio piece as much as a working tool — a place where my own conventions for DI, logging, and error handling live in one visible, versioned spot. You can read more about my other projects at [matheusicaro.com](https://matheusicaro.com).
 
+See [CHANGELOG.md](./CHANGELOG.md) for the full 1.x → 2.x migration guide.
+
 ---
 
 ## Installation
@@ -21,6 +23,8 @@ It's also a portfolio piece as much as a working tool — a place where my own c
 ```bash
 npm install matheusicaro-node-framework
 ```
+
+Both CommonJS (`require`) and ESM (`import`) are supported — the package ships `dist/index.js` (CJS), `dist/index.mjs` (ESM), and `dist/index.d.ts` (types), wired via `main`/`module`/`types` in `package.json`.
 
 <details>
 <summary>Testing a local build against another project</summary>
@@ -331,6 +335,8 @@ class MyLogger extends LoggerBase {
 <details>
 <summary>Log file locations</summary>
 
+On import, the logger's setup module creates a `logs/` directory synchronously (`mkdirSync`, if it doesn't already exist) before any logger instance is built. The only way to opt out today is to skip the default logger entirely via `DisableDefaultInstances` (see [Dependency Injection](#dependency-injection)) — there's currently no more targeted option (e.g. a config flag to disable just the file transport).
+
 - `logs/exceptions.log`
 
 ```
@@ -540,6 +546,8 @@ new NotFoundError('doc was not found', {
 
 A [fishery](https://github.com/thoughtbot/fishery)-based builder for constructing test objects with overridable fields.
 
+`Factory` is a thin subclass of fishery's own `Factory`, so every fishery feature is available as-is — associations, sequences, transient params, `afterBuild`/`afterCreate` hooks, and so on. See [fishery's README](https://github.com/thoughtbot/fishery) for the full API rather than this section, which only covers the basics.
+
 <details>
 <summary>1. Create your factory</summary>
 
@@ -608,6 +616,8 @@ it('should find by id', async () => {
 ### jestStub
 
 Auto-stubs any interface/type/object with `jest.fn()`, so every accessed property resolves to a mock function without hand-writing each one.
+
+Requires `@types/jest` in your own project for full type support — it's not bundled as a dependency of this package.
 
 <details>
 <summary>How to use it</summary>

@@ -4,6 +4,9 @@
   "description": "My custom basic configuration setups for a quick build of services and APIs for Node.",
   "author": "@matheusicaro",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "homepage": "https://github.com/matheusicaro/matheusicaro-node-framework#readme",
   "repository": {
     "type": "git",
